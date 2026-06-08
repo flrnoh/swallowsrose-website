@@ -1,0 +1,78 @@
+---
+import { copy } from '../data/copy.ts';
+import { band, links } from '../data/site.ts';
+
+const year = new Date().getFullYear();
+---
+
+<footer id="contact" class="py-20 sm:py-24">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <header class="reveal mb-12">
+      <h2 class="display text-[clamp(2.5rem,7vw,5.5rem)]">
+        <span data-lang="de">{copy.contact.headlineDE}</span>
+        <span data-lang="en" hidden>{copy.contact.headlineEN}</span>
+      </h2>
+    </header>
+
+    <div class="grid sm:grid-cols-3 gap-10 sm:gap-6 mb-16">
+      <div class="reveal">
+        <p class="font-display uppercase text-xs tracking-[0.3em] text-[color:var(--color-cream)]/40 mb-3">
+          <span data-lang="de">{copy.contact.bookingDE}</span>
+          <span data-lang="en" hidden>{copy.contact.bookingEN}</span>
+        </p>
+        <a
+          href={`mailto:${band.bookingEmail}`}
+          class="display text-xl sm:text-2xl linky"
+        >
+          {band.bookingEmail}
+        </a>
+        {/* TODO: change the booking address in src/data/site.ts */}
+      </div>
+
+      <div class="reveal">
+        <p class="font-display uppercase text-xs tracking-[0.3em] text-[color:var(--color-cream)]/40 mb-3">
+          <span data-lang="de">{copy.contact.followDE}</span>
+          <span data-lang="en" hidden>{copy.contact.followEN}</span>
+        </p>
+        <ul class="space-y-1">
+          <li>
+            <a href={links.instagram} target="_blank" rel="noopener" class="display text-xl linky">
+              Instagram
+            </a>
+          </li>
+          <li>
+            <a href={links.youtube} target="_blank" rel="noopener" class="display text-xl linky">
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="reveal">
+        <p class="font-display uppercase text-xs tracking-[0.3em] text-[color:var(--color-cream)]/40 mb-3">
+          <span data-lang="de">{copy.contact.legalDE}</span>
+          <span data-lang="en" hidden>{copy.contact.legalEN}</span>
+        </p>
+        <ul class="space-y-1">
+          <li>
+            <a href="/impressum" class="display text-xl linky">
+              <span data-lang="de">{copy.contact.imprintDE}</span>
+              <span data-lang="en" hidden>{copy.contact.imprintEN}</span>
+            </a>
+          </li>
+          <li>
+            <a href="/datenschutz" class="display text-xl linky">
+              <span data-lang="de">{copy.contact.privacyDE}</span>
+              <span data-lang="en" hidden>{copy.contact.privacyEN}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="reveal divider pt-6 flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center text-xs uppercase tracking-[0.2em] text-[color:var(--color-cream)]/40 font-display">
+      <p>&copy; {year} {band.name}. All rights reserved.</p>
+      <p>{band.origin}</p>
+    </div>
+  </div>
+</footer>

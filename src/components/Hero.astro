@@ -1,0 +1,77 @@
+---
+import { album } from '../data/site.ts';
+import { copy } from '../data/copy.ts';
+---
+
+<section
+  id="hero"
+  class="relative isolate min-h-[100svh] flex items-end overflow-hidden border-b border-[color:var(--color-cream)]/10"
+>
+  <!-- Radial glow in the accent — sparing -->
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute -top-40 -right-40 h-[80vmin] w-[80vmin] rounded-full opacity-25 blur-3xl"
+    style="background: radial-gradient(closest-side, var(--color-flame), transparent 70%);"
+  >
+  </div>
+
+  <!--
+    TODO: drop the real hero image / band logo at /public/img/hero.jpg
+    (recommended: ~2400x1600, dark-friendly, focal point right-of-center)
+  -->
+  <!--
+  <img
+    src="/img/hero.jpg"
+    alt=""
+    width="2400" height="1600"
+    aria-hidden="true"
+    class="absolute inset-0 -z-10 w-full h-full object-cover opacity-30"
+    fetchpriority="high"
+  />
+  -->
+
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full pt-24 sm:pt-28 pb-16 sm:pb-24">
+    <div class="hero-stagger max-w-[1200px]">
+      <p class="text-[color:var(--color-flame)] font-display text-xs sm:text-sm tracking-[0.4em] uppercase">
+        <span data-lang="de">{copy.hero.eyebrowDE}</span>
+        <span data-lang="en" hidden>{copy.hero.eyebrowEN}</span>
+        &nbsp;·&nbsp; {album.label}
+      </p>
+
+      <h1
+        class="display mt-4 text-[clamp(3.5rem,14vw,12rem)] leading-[0.9] tracking-[-0.02em]"
+      >
+        Swallow&rsquo;s<br /><span class="text-[color:var(--color-cream)]/90">Rose</span>
+      </h1>
+
+      <p class="display mt-6 text-[clamp(1rem,2.4vw,1.75rem)] tracking-[0.05em] text-[color:var(--color-cream)]/85">
+        New Album <span class="text-[color:var(--color-flame)]">&ldquo;{album.title}&rdquo;</span> &mdash;
+        <span data-lang="de">Out {album.releaseLabelDE}</span>
+        <span data-lang="en" hidden>Out {album.releaseLabelEN}</span>
+      </p>
+
+      <p class="mt-6 max-w-2xl text-base sm:text-lg text-[color:var(--color-cream)]/70">
+        <span data-lang="de">{copy.hero.descDE}</span>
+        <span data-lang="en" hidden>{copy.hero.descEN}</span>
+      </p>
+
+      <div class="mt-10 flex flex-wrap gap-4">
+        <a
+          href={album.preOrderUrl}
+          target="_blank"
+          rel="noopener"
+          class="btn btn-primary"
+        >
+          <span data-lang="de">{copy.hero.preOrderDE}</span>
+          <span data-lang="en" hidden>{copy.hero.preOrderEN}</span>
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+        <a href="#music" class="btn btn-ghost">
+          <span data-lang="de">{copy.hero.listenDE}</span>
+          <span data-lang="en" hidden>{copy.hero.listenEN}</span>
+          <span aria-hidden="true">&darr;</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

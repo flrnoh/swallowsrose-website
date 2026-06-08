@@ -1,0 +1,72 @@
+---
+import { nav, band } from '../data/site.ts';
+---
+
+<header
+  class="sticky top-0 z-50 backdrop-blur-md bg-[color:var(--color-ink)]/80 border-b border-[color:var(--color-cream)]/10"
+>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="flex h-14 items-center justify-between gap-4">
+      <a
+        href="#top"
+        class="display text-sm sm:text-base tracking-[0.08em] hover:text-[color:var(--color-flame)] transition-colors"
+        aria-label={`${band.name} — back to top`}
+      >
+        SWALLOW&rsquo;S ROSE
+      </a>
+
+      <nav aria-label="Primary" class="hidden md:block">
+        <ul class="flex items-center gap-6 text-sm uppercase tracking-[0.12em] font-display">
+          {
+            nav.map((item) => (
+              <li>
+                <a href={item.href} class="linky">
+                  <span data-lang="de">{item.labelDE}</span>
+                  <span data-lang="en" hidden>{item.labelEN}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div class="flex items-center gap-1 text-xs font-display tracking-[0.15em]">
+        <button
+          type="button"
+          data-lang-toggle="de"
+          aria-pressed="true"
+          class="px-2 py-1 border border-[color:var(--color-cream)]/30 hover:border-[color:var(--color-flame)] hover:text-[color:var(--color-flame)] aria-[pressed=true]:bg-[color:var(--color-cream)] aria-[pressed=true]:text-[color:var(--color-ink)] aria-[pressed=true]:border-[color:var(--color-cream)] transition-colors min-h-[32px] min-w-[36px]"
+        >
+          DE
+        </button>
+        <button
+          type="button"
+          data-lang-toggle="en"
+          aria-pressed="false"
+          class="px-2 py-1 border border-[color:var(--color-cream)]/30 hover:border-[color:var(--color-flame)] hover:text-[color:var(--color-flame)] aria-[pressed=true]:bg-[color:var(--color-cream)] aria-[pressed=true]:text-[color:var(--color-ink)] aria-[pressed=true]:border-[color:var(--color-cream)] transition-colors min-h-[32px] min-w-[36px]"
+        >
+          EN
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile section chips -->
+    <nav aria-label="Sections" class="md:hidden -mx-4 sm:-mx-6 pb-2">
+      <ul class="flex gap-3 overflow-x-auto px-4 sm:px-6 text-[11px] uppercase tracking-[0.18em] font-display text-[color:var(--color-cream)]/70">
+        {
+          nav.map((item) => (
+            <li class="shrink-0">
+              <a
+                href={item.href}
+                class="block py-2 px-1 hover:text-[color:var(--color-flame)] transition-colors"
+              >
+                <span data-lang="de">{item.labelDE}</span>
+                <span data-lang="en" hidden>{item.labelEN}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>

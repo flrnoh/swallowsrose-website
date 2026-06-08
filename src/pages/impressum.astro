@@ -1,0 +1,40 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Impressum — Swallow's Rose" description="Impressum / Legal notice.">
+  <article class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-24">
+    <h1 class="display text-5xl sm:text-7xl mb-10">Impressum</h1>
+
+    <!--
+      TODO: Pflichtangaben gemäß § 5 TMG ergänzen.
+      Mindestens: Vor- und Nachname (oder vertretungsberechtigte Person),
+      vollständige Anschrift, Kontaktdaten (E-Mail, Telefon),
+      ggf. Umsatzsteuer-ID, Verantwortliche/r i. S. d. § 18 MStV.
+    -->
+    <div class="space-y-6 text-[color:var(--color-cream)]/80 leading-relaxed">
+      <p class="text-[color:var(--color-flame)] font-display uppercase tracking-[0.2em] text-sm">
+        TODO — Inhalte ergänzen
+      </p>
+
+      <section>
+        <h2 class="display text-2xl mb-2">Angaben gemäß § 5 TMG</h2>
+        <p>[Vor- und Nachname]<br />[Straße + Hausnummer]<br />[PLZ + Ort]</p>
+      </section>
+
+      <section>
+        <h2 class="display text-2xl mb-2">Kontakt</h2>
+        <p>E-Mail: [kontakt@example.com]<br />Telefon: [optional]</p>
+      </section>
+
+      <section>
+        <h2 class="display text-2xl mb-2">Verantwortlich i. S. d. § 18 Abs. 2 MStV</h2>
+        <p>[Vor- und Nachname]<br />[Anschrift]</p>
+      </section>
+
+      <p class="pt-6">
+        <a href="/" class="linky font-display uppercase tracking-[0.15em]">&larr; Zurück</a>
+      </p>
+    </div>
+  </article>
+</Layout>

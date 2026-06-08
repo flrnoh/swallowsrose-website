@@ -1,0 +1,53 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Datenschutz — Swallow's Rose" description="Datenschutzerklärung.">
+  <article class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-24">
+    <h1 class="display text-5xl sm:text-7xl mb-10">Datenschutz</h1>
+
+    <!--
+      TODO: Datenschutzerklärung gemäß DSGVO erstellen.
+      Empfohlen: Generator (z. B. e-recht24, Dr. Schwenke) und durch
+      eine Anwältin/einen Anwalt gegenprüfen lassen.
+
+      Aktuell relevante Drittanbieter, sobald aktiviert:
+      - Spotify-Embed (wird erst auf Klick geladen → DSGVO-freundlicher Default)
+      - Externe Links (Instagram, YouTube, Uncle M Shop)
+      - Hosting via Vercel (Logfiles, ggf. US-Transfer)
+    -->
+    <div class="space-y-6 text-[color:var(--color-cream)]/80 leading-relaxed">
+      <p class="text-[color:var(--color-flame)] font-display uppercase tracking-[0.2em] text-sm">
+        TODO — Datenschutzerklärung ergänzen
+      </p>
+
+      <section>
+        <h2 class="display text-2xl mb-2">1. Verantwortlicher</h2>
+        <p>Siehe <a href="/impressum" class="linky">Impressum</a>.</p>
+      </section>
+
+      <section>
+        <h2 class="display text-2xl mb-2">2. Hosting</h2>
+        <p>[Hosting-Provider, Serverstandort, Auftragsverarbeitungsvertrag …]</p>
+      </section>
+
+      <section>
+        <h2 class="display text-2xl mb-2">3. Eingebettete Inhalte (Spotify)</h2>
+        <p>
+          Der Spotify-Player wird erst nach ausdrücklichem Klick geladen.
+          Beim Laden werden Daten an Spotify (Spotify AB, Schweden / Spotify USA Inc.) übertragen.
+          [Details zur Rechtsgrundlage, Cookies, Speicherdauer …]
+        </p>
+      </section>
+
+      <section>
+        <h2 class="display text-2xl mb-2">4. Rechte der Betroffenen</h2>
+        <p>[Auskunft, Berichtigung, Löschung, Datenübertragbarkeit, Widerspruch, Beschwerde …]</p>
+      </section>
+
+      <p class="pt-6">
+        <a href="/" class="linky font-display uppercase tracking-[0.15em]">&larr; Zurück</a>
+      </p>
+    </div>
+  </article>
+</Layout>

@@ -1,0 +1,66 @@
+---
+import { copy } from '../data/copy.ts';
+import { tourDates } from '../data/site.ts';
+---
+
+<section id="tour" class="py-20 sm:py-28 border-b border-[color:var(--color-cream)]/10">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <header class="reveal flex items-end justify-between gap-4 mb-6">
+      <h2 class="display text-[clamp(2.5rem,7vw,5.5rem)]">
+        <span data-lang="de">{copy.tour.headlineDE}</span>
+        <span data-lang="en" hidden>{copy.tour.headlineEN}</span>
+      </h2>
+      <span class="hidden sm:block text-xs uppercase tracking-[0.3em] text-[color:var(--color-cream)]/40">
+        03 / Live
+      </span>
+    </header>
+
+    <p class="reveal max-w-2xl text-[color:var(--color-cream)]/65 mb-10">
+      <span data-lang="de">{copy.tour.supportDE}</span>
+      <span data-lang="en" hidden>{copy.tour.supportEN}</span>
+    </p>
+
+    {
+      tourDates.length === 0 ? (
+        <p class="reveal display text-2xl text-[color:var(--color-cream)]/60">
+          <span data-lang="de">{copy.tour.emptyDE}</span>
+          <span data-lang="en" hidden>{copy.tour.emptyEN}</span>
+        </p>
+      ) : (
+        <ul class="divide-y divide-[color:var(--color-cream)]/10 border-y border-[color:var(--color-cream)]/10">
+          {tourDates.map((d) => (
+            <li class="reveal group grid grid-cols-12 items-center gap-4 py-5 sm:py-6 transition-colors hover:bg-[color:var(--color-ink-soft)]">
+              <time
+                datetime={d.date}
+                class="col-span-12 sm:col-span-3 display text-lg sm:text-xl text-[color:var(--color-flame)]"
+              >
+                <span data-lang="de">{d.dateLabelDE}</span>
+                <span data-lang="en" hidden>{d.dateLabelEN}</span>
+              </time>
+              <div class="col-span-7 sm:col-span-5">
+                <p class="display text-xl sm:text-2xl leading-none">{d.city}</p>
+                <p class="mt-1 text-sm text-[color:var(--color-cream)]/65">{d.venue}</p>
+              </div>
+              <div class="col-span-12 sm:col-span-2 text-sm text-[color:var(--color-cream)]/55 uppercase tracking-[0.15em]">
+                {d.note ?? ''}
+              </div>
+              <div class="col-span-5 sm:col-span-2 text-right">
+                <a
+                  href={d.ticketUrl}
+                  target="_blank"
+                  rel="noopener"
+                  class="inline-flex items-center gap-1 font-display uppercase text-sm tracking-[0.15em] linky"
+                >
+                  <span data-lang="de">{copy.tour.ticketsDE}</span>
+                  <span data-lang="en" hidden>{copy.tour.ticketsEN}</span>
+                  <span aria-hidden="true">&rarr;</span>
+                </a>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    {/* TODO: replace the placeholder rows in src/data/site.ts with real tour dates. */}
+  </div>
+</section>
