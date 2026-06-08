@@ -5,72 +5,84 @@ import { copy } from '../data/copy.ts';
 
 <section
   id="hero"
-  class="relative isolate min-h-[100svh] flex items-end overflow-hidden border-b border-[color:var(--color-cream)]/10"
+  class="relative isolate min-h-[100svh] flex flex-col overflow-hidden border-b border-[color:var(--color-cream)]/10"
 >
-  <!-- Radial glow in the accent — sparing -->
-  <div
-    aria-hidden="true"
-    class="pointer-events-none absolute -top-40 -right-40 h-[80vmin] w-[80vmin] rounded-full opacity-25 blur-3xl"
-    style="background: radial-gradient(closest-side, var(--color-flame), transparent 70%);"
-  >
+  <!--
+    Band shot at full width on top. Aspect 2:1 keeps all five faces in
+    frame on mobile (no horizontal cover-crop), and gets capped at 55svh
+    on tall viewports so the headline below still fits a single screen.
+    Source: /public/img/hero.jpg, 2400×1200, generated from picdrop file 27.
+  -->
+  <div class="relative w-full aspect-[2/1] max-h-[55svh] overflow-hidden bg-[color:var(--color-ink-soft)]">
+    <img
+      src="/img/hero.jpg"
+      alt="Swallow’s Rose — Bandfoto (v. l. n. r. Manuel, Fabian, Dominik, Michael, Korbinian)"
+      width="2400"
+      height="1200"
+      class="absolute inset-0 w-full h-full object-cover"
+      style="object-position: 50% 8%"
+      fetchpriority="high"
+      onerror="this.style.display='none'"
+    />
+    <!-- soft fade into the ink at the very bottom so the photo glides into the copy section -->
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[color:var(--color-ink)] to-transparent"
+    >
+    </div>
   </div>
 
-  <!--
-    Hero-Backdrop: speichere das Album-Artwork "The Beginning" (oder ein
-    Pressefoto) als /public/img/hero.jpg ab (≈ 2400×1600, dark-friendly).
-    Solange die Datei fehlt, blendet onerror das <img> unsichtbar weg.
-  -->
-  <img
-    src="/img/hero.jpg"
-    alt=""
-    width="2400"
-    height="1600"
-    aria-hidden="true"
-    class="absolute inset-0 -z-10 w-full h-full object-cover opacity-40"
-    fetchpriority="high"
-    onerror="this.style.display='none'"
-  />
+  <!-- Copy block sits right under the photo, on solid ink — no overlap with faces. -->
+  <div class="relative flex-1 flex items-start overflow-hidden">
+    <!-- Coral glow accent, off-frame so it just bleeds in -->
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute -bottom-40 -right-40 h-[60vmin] w-[60vmin] rounded-full opacity-25 blur-3xl"
+      style="background: radial-gradient(closest-side, var(--color-flame), transparent 70%);"
+    >
+    </div>
 
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full pt-24 sm:pt-28 pb-16 sm:pb-24">
-    <div class="hero-stagger max-w-[1200px]">
-      <p class="text-[color:var(--color-flame)] font-display text-xs sm:text-sm tracking-[0.4em] uppercase">
-        <span data-lang="de">{copy.hero.eyebrowDE}</span>
-        <span data-lang="en" hidden>{copy.hero.eyebrowEN}</span>
-        &nbsp;·&nbsp; {album.label}
-      </p>
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full pt-10 sm:pt-14 pb-14 sm:pb-20">
+      <div class="hero-stagger max-w-[1200px]">
+        <p class="text-[color:var(--color-flame)] font-display text-xs sm:text-sm tracking-[0.4em] uppercase">
+          <span data-lang="de">{copy.hero.eyebrowDE}</span>
+          <span data-lang="en" hidden>{copy.hero.eyebrowEN}</span>
+          &nbsp;·&nbsp; {album.label}
+        </p>
 
-      <h1
-        class="display mt-4 text-[clamp(3.5rem,14vw,12rem)] leading-[0.9] tracking-[-0.02em]"
-      >
-        Swallow&rsquo;s<br /><span class="text-[color:var(--color-cream)]/90">Rose</span>
-      </h1>
-
-      <p class="display mt-6 text-[clamp(1rem,2.4vw,1.75rem)] tracking-[0.05em] text-[color:var(--color-cream)]/85">
-        Das neue Album <span class="text-[color:var(--color-flame)]">&ldquo;{album.title}&rdquo;</span>
-        <span class="text-[color:var(--color-cream)]/55">— Out Now</span>
-      </p>
-
-      <p class="mt-6 max-w-2xl text-base sm:text-lg text-[color:var(--color-cream)]/70">
-        <span data-lang="de">{copy.hero.descDE}</span>
-        <span data-lang="en" hidden>{copy.hero.descEN}</span>
-      </p>
-
-      <div class="mt-10 flex flex-wrap gap-4">
-        <a
-          href={album.orderUrl}
-          target="_blank"
-          rel="noopener"
-          class="btn btn-primary"
+        <h1
+          class="display mt-4 text-[clamp(3rem,12vw,9rem)] leading-[0.9] tracking-[-0.02em]"
         >
-          <span data-lang="de">{copy.hero.orderDE}</span>
-          <span data-lang="en" hidden>{copy.hero.orderEN}</span>
-          <span aria-hidden="true">&rarr;</span>
-        </a>
-        <a href="#music" class="btn btn-ghost">
-          <span data-lang="de">{copy.hero.listenDE}</span>
-          <span data-lang="en" hidden>{copy.hero.listenEN}</span>
-          <span aria-hidden="true">&darr;</span>
-        </a>
+          Swallow&rsquo;s<br /><span class="text-[color:var(--color-cream)]/90">Rose</span>
+        </h1>
+
+        <p class="display mt-5 text-[clamp(1rem,2.2vw,1.5rem)] tracking-[0.05em] text-[color:var(--color-cream)]/85">
+          Das neue Album <span class="text-[color:var(--color-flame)]">&ldquo;{album.title}&rdquo;</span>
+          <span class="text-[color:var(--color-cream)]/55">— Out Now</span>
+        </p>
+
+        <p class="mt-5 max-w-2xl text-base sm:text-lg text-[color:var(--color-cream)]/70">
+          <span data-lang="de">{copy.hero.descDE}</span>
+          <span data-lang="en" hidden>{copy.hero.descEN}</span>
+        </p>
+
+        <div class="mt-8 flex flex-wrap gap-4">
+          <a
+            href={album.orderUrl}
+            target="_blank"
+            rel="noopener"
+            class="btn btn-primary"
+          >
+            <span data-lang="de">{copy.hero.orderDE}</span>
+            <span data-lang="en" hidden>{copy.hero.orderEN}</span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+          <a href="#music" class="btn btn-ghost">
+            <span data-lang="de">{copy.hero.listenDE}</span>
+            <span data-lang="en" hidden>{copy.hero.listenEN}</span>
+            <span aria-hidden="true">&darr;</span>
+          </a>
+        </div>
       </div>
     </div>
   </div>
