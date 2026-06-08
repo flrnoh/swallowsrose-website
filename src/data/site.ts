@@ -61,7 +61,8 @@ export type TourDate = {
   note?: string;
 };
 
-// TODO: Ticket-Links pflegen, sobald verfügbar (leerer String → kein Link).
+// Ticket-Links: leerer String → kein Link (zeigt "Bald"). Past dates werden
+// clientseitig automatisch ausgegraut (siehe Layout.astro).
 export const tourDates: TourDate[] = [
   {
     date: '2026-05-09',
@@ -85,7 +86,7 @@ export const tourDates: TourDate[] = [
     dateLabelEN: 'Jun 5, 2026',
     city: 'Bischofsmais',
     venue: 'Rock the Hill Festival',
-    ticketUrl: '',
+    ticketUrl: 'https://rockthehill.de/tickets/',
     note: 'Festival',
   },
   {
@@ -103,7 +104,7 @@ export const tourDates: TourDate[] = [
     dateLabelEN: 'Jun 27, 2026',
     city: 'Neumarkt',
     venue: 'Paradise Shitty Open Air',
-    ticketUrl: '',
+    ticketUrl: 'https://www.paradise-shitty.de/tickets',
     note: 'Open Air',
   },
   {
@@ -112,7 +113,7 @@ export const tourDates: TourDate[] = [
     dateLabelEN: 'Jul 5, 2026',
     city: 'Empfenbach',
     venue: 'Festival Holledau',
-    ticketUrl: '',
+    ticketUrl: 'https://festival-holledau.de/tickets/',
     note: 'Festival',
   },
   {
@@ -121,7 +122,7 @@ export const tourDates: TourDate[] = [
     dateLabelEN: 'Jul 11, 2026',
     city: 'Schlüchtern',
     venue: 'Rock am Hinkelhof',
-    ticketUrl: '',
+    ticketUrl: 'https://www.eventim.de/event/rock-am-hinkelhof-2026-rock-am-hinkelhof-20497606/',
     note: 'Festival',
   },
   {
@@ -130,7 +131,7 @@ export const tourDates: TourDate[] = [
     dateLabelEN: 'Aug 21, 2026',
     city: 'Stetten / Mühldorf',
     venue: 'Soizfest',
-    ticketUrl: '',
+    ticketUrl: 'https://www.eventim-light.com/de/a/663f4ed75085a858ac97e8c8/e/69a460d990e1773b398ee34a',
     note: 'Festival',
   },
   {
@@ -139,14 +140,16 @@ export const tourDates: TourDate[] = [
     dateLabelEN: 'Sep 12, 2026',
     city: 'Zollernalb',
     venue: 'U&D Zollernalb',
-    ticketUrl: '',
+    ticketUrl: 'https://u-d-zollernalb.de/',
+    note: 'Eintritt frei',
   },
   {
     date: '2026-09-26',
     dateLabelDE: '26. September 2026',
     dateLabelEN: 'Sep 26, 2026',
-    city: 'Kulmbach',
+    city: 'Marktschorgast / Kulmbach',
     venue: 'Falling Leaves Festival',
+    // TODO: Ticket-URL ergänzen, sobald 2026er Termin freigeschaltet ist.
     ticketUrl: '',
     note: 'Festival',
   },
@@ -156,7 +159,7 @@ export const tourDates: TourDate[] = [
     dateLabelEN: 'Oct 2, 2026',
     city: 'Leipzig',
     venue: 'Bandhaus',
-    ticketUrl: '',
+    ticketUrl: 'https://bandcommunity-leipzig.org/veranstaltungen/',
   },
   {
     date: '2026-11-07',
@@ -164,7 +167,7 @@ export const tourDates: TourDate[] = [
     dateLabelEN: 'Nov 7, 2026',
     city: 'Salzbergen',
     venue: 'EMS Noise Rock Fest',
-    ticketUrl: '',
+    ticketUrl: 'https://emsnoise-rockfest.de/',
     note: 'Festival',
   },
 ];

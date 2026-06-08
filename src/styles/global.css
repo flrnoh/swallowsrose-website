@@ -168,6 +168,14 @@
   transform: translateY(0);
 }
 
+/* Past tour rows: strikethrough on date + city + venue (opacity handled in Tour.astro classes) */
+[data-tour-row][data-past="true"] time,
+[data-tour-row][data-past="true"] .display {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgba(244, 236, 224, 0.5);
+}
+
 /* Respect prefers-reduced-motion: kill all motion */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

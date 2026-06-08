@@ -29,7 +29,10 @@ import { tourDates } from '../data/site.ts';
       ) : (
         <ul class="divide-y divide-[color:var(--color-cream)]/10 border-y border-[color:var(--color-cream)]/10">
           {tourDates.map((d) => (
-            <li class="reveal group grid grid-cols-12 items-center gap-4 py-5 sm:py-6 transition-colors hover:bg-[color:var(--color-ink-soft)]">
+            <li
+              data-tour-row
+              class="reveal group grid grid-cols-12 items-center gap-4 py-5 sm:py-6 transition-colors hover:bg-[color:var(--color-ink-soft)] data-[past=true]:opacity-40 data-[past=true]:hover:bg-transparent"
+            >
               <time
                 datetime={d.date}
                 class="col-span-12 sm:col-span-3 display text-lg sm:text-xl text-[color:var(--color-flame)]"
@@ -44,7 +47,7 @@ import { tourDates } from '../data/site.ts';
               <div class="col-span-12 sm:col-span-2 text-sm text-[color:var(--color-cream)]/55 uppercase tracking-[0.15em]">
                 {d.note ?? ''}
               </div>
-              <div class="col-span-5 sm:col-span-2 text-right">
+              <div data-tickets-cell class="col-span-5 sm:col-span-2 text-right">
                 {d.ticketUrl ? (
                   <a
                     href={d.ticketUrl}

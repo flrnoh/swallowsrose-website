@@ -128,6 +128,35 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'http://localhost');
           targets.forEach((t) => io.observe(t));
         }
 
+        // ---------- Auto-mark past tour dates ----------
+        // Runs on every page load, so the day after a gig the row dims
+        // automatically — no rebuild / deploy needed.
+        (function markPast() {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const rows = document.querySelectorAll('[data-tour-row]');
+          rows.forEach((row) => {
+            const t = row.querySelector('time[datetime]');
+            if (!t) return;
+            const d = new Date(t.getAttribute('datetime'));
+            if (isNaN(d.getTime()) || d >= today) return;
+            row.setAttribute('data-past', 'true');
+            const cell = row.querySelector('[data-tickets-cell]');
+            if (cell) {
+              cell.innerHTML =
+                '<span class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-cream)]/40">' +
+                '<span data-lang="de">Vergangen</span>' +
+                '<span data-lang="en" hidden>Past</span>' +
+                '</span>';
+              // Apply the currently-active language to the freshly-injected spans.
+              const curr = root.lang || 'de';
+              cell.querySelectorAll('[data-lang]').forEach((el) => {
+                el.hidden = el.getAttribute('data-lang') !== curr;
+              });
+            }
+          });
+        })();
+
         // ---------- Spotify click-to-load (DSGVO) ----------
         document.addEventListener('click', (e) => {
           const target = e.target;
