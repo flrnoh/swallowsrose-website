@@ -4,45 +4,126 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout title="Datenschutz — Swallow's Rose" description="Datenschutzerklärung.">
   <article class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-24">
-    <h1 class="display text-5xl sm:text-7xl mb-10">Datenschutz</h1>
+    <h1 class="display text-5xl sm:text-7xl mb-12">Datenschutz</h1>
 
-    <!--
-      TODO: Datenschutzerklärung gemäß DSGVO erstellen.
-      Empfohlen: Generator (z. B. e-recht24, Dr. Schwenke) und durch
-      eine Anwältin/einen Anwalt gegenprüfen lassen.
-
-      Aktuell relevante Drittanbieter, sobald aktiviert:
-      - Spotify-Embed (wird erst auf Klick geladen → DSGVO-freundlicher Default)
-      - Externe Links (Instagram, YouTube, Uncle M Shop)
-      - Hosting via Vercel (Logfiles, ggf. US-Transfer)
-    -->
-    <div class="space-y-6 text-[color:var(--color-cream)]/80 leading-relaxed">
-      <p class="text-[color:var(--color-flame)] font-display uppercase tracking-[0.2em] text-sm">
-        TODO — Datenschutzerklärung ergänzen
+    <div class="space-y-10 text-[color:var(--color-cream)]/85 leading-relaxed">
+      <p class="text-[color:var(--color-flame)] font-display uppercase tracking-[0.2em] text-xs">
+        Stand: Juni 2026
       </p>
 
       <section>
-        <h2 class="display text-2xl mb-2">1. Verantwortlicher</h2>
-        <p>Siehe <a href="/impressum" class="linky">Impressum</a>.</p>
-      </section>
-
-      <section>
-        <h2 class="display text-2xl mb-2">2. Hosting</h2>
-        <p>[Hosting-Provider, Serverstandort, Auftragsverarbeitungsvertrag …]</p>
-      </section>
-
-      <section>
-        <h2 class="display text-2xl mb-2">3. Eingebettete Inhalte (Spotify)</h2>
+        <h2 class="display text-2xl mb-3">1. Verantwortlicher</h2>
         <p>
-          Der Spotify-Player wird erst nach ausdrücklichem Klick geladen.
-          Beim Laden werden Daten an Spotify (Spotify AB, Schweden / Spotify USA Inc.) übertragen.
-          [Details zur Rechtsgrundlage, Cookies, Speicherdauer …]
+          Verantwortlich für die Datenverarbeitung auf dieser Website ist die im
+          <a href="/impressum" class="linky">Impressum</a>
+          genannte Swallow&rsquo;s Rose GbR.
         </p>
       </section>
 
       <section>
-        <h2 class="display text-2xl mb-2">4. Rechte der Betroffenen</h2>
-        <p>[Auskunft, Berichtigung, Löschung, Datenübertragbarkeit, Widerspruch, Beschwerde …]</p>
+        <h2 class="display text-2xl mb-3">2. Was diese Seite tut – und was nicht</h2>
+        <p>
+          Diese Website ist eine statische Visitenkarte. Wir setzen <strong>keine Tracker</strong>,
+          <strong>keine Analyse-Tools</strong> (kein Google Analytics, kein Meta-Pixel),
+          <strong>keine Marketing-Cookies</strong> und <strong>kein Newsletter-Formular</strong> ein.
+          Schriftarten werden lokal vom selben Server ausgeliefert, nicht über ein
+          Drittanbieter-CDN. Es gibt deshalb auch keinen Cookie-Banner.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="display text-2xl mb-3">3. Hosting (Vercel)</h2>
+        <p>
+          Gehostet wird die Seite über Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, USA.
+          Beim Abruf protokolliert Vercel technisch notwendige Zugriffsdaten in Server-Logs
+          (insbesondere IP-Adresse, Zeitpunkt, abgerufene URL, Referrer, User-Agent), um
+          Stabilität, Sicherheit und Auslieferung der Seite zu gewährleisten. Rechtsgrundlage
+          ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse am sicheren Betrieb der Website).
+          Da Vercel in den USA sitzt, kann eine Übermittlung in ein Drittland erfolgen; Vercel
+          stützt sich hierfür auf die Standardvertragsklauseln der EU-Kommission und ist unter
+          dem EU-US Data Privacy Framework zertifiziert. Details und Datenschutzhinweise von
+          Vercel:
+          <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener" class="linky">
+            vercel.com/legal/privacy-policy
+          </a>.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="display text-2xl mb-3">4. Eingebettete Inhalte (Spotify)</h2>
+        <p>
+          Im Bereich „Musik" verlinken wir auf einen Spotify-Player. Dieser wird
+          <strong>nicht automatisch geladen</strong>: Erst wenn du aktiv auf den Schalter
+          „Spotify-Player laden" klickst, baut dein Browser eine Verbindung zu Spotify auf.
+          Dabei werden Daten an Spotify übertragen (insbesondere deine IP-Adresse, Browser-/
+          Geräte-Informationen, ggf. Cookies aus einer bestehenden Spotify-Session).
+          Anbieter ist die Spotify AB, Regeringsgatan 19, 111 53 Stockholm, Schweden, ggf.
+          unter Mitwirkung der Spotify USA Inc. Rechtsgrundlage ist deine ausdrückliche
+          Einwilligung durch den Klick (Art. 6 Abs. 1 lit. a DSGVO). Die Einwilligung kannst du
+          jederzeit widerrufen, indem du die Seite neu lädst, ohne den Player erneut zu starten.
+          Spotify-Datenschutzhinweise:
+          <a href="https://www.spotify.com/de/legal/privacy-policy/" target="_blank" rel="noopener" class="linky">
+            spotify.com/de/legal/privacy-policy
+          </a>.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="display text-2xl mb-3">5. Externe Links</h2>
+        <p>
+          An mehreren Stellen verlinken wir zu externen Anbietern (u. a. Instagram, YouTube,
+          Apple Music, Bandcamp, Uncle&nbsp;M Shop). Beim Klick auf einen solchen Link verlässt
+          du diese Seite und die Datenschutzbestimmungen des jeweiligen Anbieters greifen.
+          Wir haben keinen Einfluss darauf, ob und in welchem Umfang dort Daten verarbeitet
+          werden.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="display text-2xl mb-3">6. Browser-Speicherung der Sprachwahl</h2>
+        <p>
+          Wenn du oben rechts die Sprache zwischen Deutsch und Englisch umschaltest, merkt sich
+          dein Browser deine Wahl in der lokalen Browser-Datenbank (<code>localStorage</code>,
+          Schlüssel: <code>sr-lang</code>). Diese Information bleibt ausschließlich in deinem
+          Browser, wird nicht an uns oder Dritte übertragen und kann jederzeit über die
+          Einstellungen deines Browsers gelöscht werden. Rechtsgrundlage ist § 25 Abs. 2 Nr. 2
+          TDDDG (technisch notwendige Speicherung zur Bereitstellung der ausdrücklich gewählten
+          Funktion).
+        </p>
+      </section>
+
+      <section>
+        <h2 class="display text-2xl mb-3">7. Kontaktaufnahme per E-Mail oder Telefon</h2>
+        <p>
+          Wenn du uns über die im Impressum angegebene E-Mail-Adresse oder Telefonnummer
+          kontaktierst, verarbeiten wir die übermittelten Daten (Name, Kontaktdaten, Anliegen)
+          ausschließlich zur Beantwortung deiner Anfrage. Rechtsgrundlage ist Art. 6 Abs. 1
+          lit. b oder f DSGVO. Wir löschen die Daten, sobald sie nicht mehr erforderlich sind
+          und keine gesetzlichen Aufbewahrungspflichten entgegenstehen.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="display text-2xl mb-3">8. Deine Rechte</h2>
+        <p>
+          Du hast das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16 DSGVO),
+          Löschung (Art. 17 DSGVO), Einschränkung der Verarbeitung (Art. 18 DSGVO),
+          Datenübertragbarkeit (Art. 20 DSGVO) sowie Widerspruch (Art. 21 DSGVO). Erteilte
+          Einwilligungen kannst du jederzeit mit Wirkung für die Zukunft widerrufen. Wende dich
+          dafür an die im Impressum genannte Kontaktadresse.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="display text-2xl mb-3">9. Beschwerde bei einer Aufsichtsbehörde</h2>
+        <p>
+          Unabhängig davon steht dir ein Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde
+          zu. Zuständig ist für uns das Bayerische Landesamt für Datenschutzaufsicht (BayLDA),
+          Promenade 18, 91522 Ansbach,
+          <a href="https://www.lda.bayern.de" target="_blank" rel="noopener" class="linky">
+            lda.bayern.de
+          </a>.
+        </p>
       </section>
 
       <p class="pt-6">

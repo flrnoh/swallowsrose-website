@@ -2,9 +2,10 @@
 
 export const band = {
   name: "Swallow's Rose",
-  origin: 'Bodenmais, Bayern',
-  // TODO: bestätigen / durch reale Booking-Adresse ersetzen.
-  bookingEmail: 'booking@swallowsrose.com',
+  origin: 'Bayerischer Wald',
+  // Offizielle Kontaktadresse aus dem Impressum.
+  bookingEmail: 'swallowsrose@web.de',
+  bookingPhone: '+49 171 2262714',
 };
 
 export const album = {
