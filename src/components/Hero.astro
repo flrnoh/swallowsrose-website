@@ -46,9 +46,8 @@ import { copy } from '../data/copy.ts';
       </h1>
 
       <p class="display mt-6 text-[clamp(1rem,2.4vw,1.75rem)] tracking-[0.05em] text-[color:var(--color-cream)]/85">
-        New Album <span class="text-[color:var(--color-flame)]">&ldquo;{album.title}&rdquo;</span> &mdash;
-        <span data-lang="de">Out {album.releaseLabelDE}</span>
-        <span data-lang="en" hidden>Out {album.releaseLabelEN}</span>
+        Das neue Album <span class="text-[color:var(--color-flame)]">&ldquo;{album.title}&rdquo;</span>
+        <span class="text-[color:var(--color-cream)]/55">— Out Now</span>
       </p>
 
       <p class="mt-6 max-w-2xl text-base sm:text-lg text-[color:var(--color-cream)]/70">
@@ -58,13 +57,13 @@ import { copy } from '../data/copy.ts';
 
       <div class="mt-10 flex flex-wrap gap-4">
         <a
-          href={album.preOrderUrl}
+          href={album.orderUrl}
           target="_blank"
           rel="noopener"
           class="btn btn-primary"
         >
-          <span data-lang="de">{copy.hero.preOrderDE}</span>
-          <span data-lang="en" hidden>{copy.hero.preOrderEN}</span>
+          <span data-lang="de">{copy.hero.orderDE}</span>
+          <span data-lang="en" hidden>{copy.hero.orderEN}</span>
           <span aria-hidden="true">&rarr;</span>
         </a>
         <a href="#music" class="btn btn-ghost">

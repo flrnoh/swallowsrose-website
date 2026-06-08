@@ -13,7 +13,7 @@ export const album = {
   releaseDate: '2026-03-06',
   releaseLabelDE: '6. März 2026',
   releaseLabelEN: 'March 6th, 2026',
-  preOrderUrl: 'https://shop.uncle-m.com/cat/index/sCategory/2233',
+  orderUrl: 'https://shop.uncle-m.com/cat/index/sCategory/2233',
   label: 'Uncle M Music',
 };
 
