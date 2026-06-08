@@ -1,7 +1,8 @@
 # Swallow's Rose — Website
 
 Statische One-Pager-Website für die melodische Punkrock-Band **Swallow's Rose**
-aus Bayern. Gebaut mit Astro + Tailwind v4, dark theme, DSGVO-freundlich
+aus dem Bayerischen Wald (Bodenmais). Gebaut mit Astro + Tailwind v4, dark
+theme nach der Farbsprache des Album-Artworks „The Beginning", DSGVO-freundlich
 (keine Tracker, keine Google Fonts, Spotify-Embed nur auf Klick).
 
 ## Lokal entwickeln
@@ -23,25 +24,35 @@ Alle anpassbaren Inhalte liegen zentral unter `src/data/`. Such im Code nach
 | Was              | Datei                                  | Hinweis                                                                |
 | ---------------- | -------------------------------------- | ---------------------------------------------------------------------- |
 | Album, Pre-Order | `src/data/site.ts` (`album`)           | Release-Datum, Pre-Order-URL, Label.                                   |
-| Booking-Mail     | `src/data/site.ts` (`band`)            | `bookingEmail` durch reale Adresse ersetzen.                           |
-| Social-Links     | `src/data/site.ts` (`links`)           | Instagram, YouTube, Apple Music, Shop.                                 |
-| Spotify-Embed    | `src/data/site.ts` (`spotifyEmbedSrc`) | `REPLACE_WITH_SPOTIFY_ARTIST_ID` durch die echte Artist-ID tauschen.   |
+| Booking-Mail     | `src/data/site.ts` (`band`)            | `bookingEmail` bestätigen / ersetzen.                                  |
+| Social-Links     | `src/data/site.ts` (`links`)           | Instagram, YouTube, Apple Music (TODO), Shop, Bandcamp.                |
+| Spotify-Embed    | `src/data/site.ts` (`spotifyEmbedSrc`) | Aktuell verdrahtet auf Artist-ID `6tJMwSfznqmbuudBww2qUw`.             |
 | Bandmitglieder   | `src/data/site.ts` (`members`)         | Reihenfolge + Fotos (`/public/img/band/<name>.jpg`).                   |
-| Tourdaten        | `src/data/site.ts` (`tourDates`)       | Drei Platzhalter durch echte Termine ersetzen. Leeres Array → "Dates announced soon". |
+| Tourdaten        | `src/data/site.ts` (`tourDates`)       | 12 echte Daten gepflegt. Ticket-URLs ergänzen, sobald verfügbar (leerer String → "Bald"). Leeres Array → "Dates announced soon". |
 | Bandtext DE/EN   | `src/data/copy.ts` (`about`)           | EN-Version durch die offizielle englische Fassung ersetzen.            |
-| Site-URL         | `astro.config.mjs` (`SITE`)            | Final-Domain eintragen, damit Sitemap + Canonical stimmen.             |
+| Site-URL         | `astro.config.mjs` (`SITE`)            | Aktuell auf `swallowsrose-website.vercel.app` gesetzt; auf Custom-Domain wechseln, sobald gebunden. |
 
 ### Bilder
 
 Platzhalter-Pfade, die noch befüllt werden müssen (PNG/JPG, dunkel-tauglich):
 
-- `public/img/hero.jpg` — Pressefoto / Logo-Background (≈ 2400×1600)
-- `public/img/og.jpg` — Open-Graph-Bild für Social Shares (1200×630)
-- `public/img/band/<name>.jpg` — Portraits, Hochformat (≈ 600×800)
-- `public/img/merch/product-1.jpg` … `product-3.jpg` — Produktbilder (quadratisch, ≈ 600×600)
+- `public/img/hero.jpg` — Album-Artwork „The Beginning" oder ein dunkles
+  Pressefoto (≈ 2400×1600). Wird mit 40 % Deckkraft als Hero-Backdrop gelegt.
+- `public/img/og.jpg` — Open-Graph-Bild für Social Shares (1200×630). Tipp:
+  Front-Cover des Albums mit Headline „SWALLOW'S ROSE — THE BEGINNING".
+- `public/img/band/<name>.jpg` — Portraits, Hochformat (≈ 600×800). Die
+  Vornamen sind: `dominik`, `manuel`, `korbi`, `fabi`, `michael`.
+- `public/img/merch/product-1.jpg` … `product-3.jpg` — Produktbilder
+  (quadratisch, ≈ 600×600).
 
-Solange die Dateien fehlen, blendet das CSS die `<img>`-Tags via
-`onerror="this.style.display='none'"` aus — die Layouts bleiben heil.
+**Quellen:**
+- Bandfotos: <https://www.picdrop.com/flogge/gd7DKjaWCw> — pro Mitglied einen
+  Crop ziehen und unter dem oben genannten Pfad ablegen.
+- Album-Artwork: Cover-PNG/JPG des Releases „The Beginning" (Uncle M Music,
+  06.03.2026).
+
+Solange die Dateien fehlen, blendet `onerror="this.style.display='none'"`
+die `<img>`-Tags aus — die Layouts bleiben heil.
 
 ## Sprach-Toggle DE/EN
 
@@ -49,6 +60,21 @@ Rein clientseitig. Pro übersetztem Textfragment liegen zwei
 `<span data-lang="de">` / `<span data-lang="en">` im DOM, eines davon ist via
 `hidden` ausgeblendet. Das Layout-Skript schaltet beim Klick um und speichert
 die Wahl in `localStorage` unter `sr-lang`.
+
+## Designtokens
+
+In `src/styles/global.css` als Tailwind-v4-`@theme`-Variablen:
+
+| Token                | Wert      | Verwendung                                |
+| -------------------- | --------- | ----------------------------------------- |
+| `--color-ink`        | `#0a1424` | Page-Hintergrund (midnight navy)          |
+| `--color-ink-soft`   | `#14213a` | Surfaces (Cards, Spotify-Slot)            |
+| `--color-cream`      | `#f4ece0` | Text / Hauptfarbe                         |
+| `--color-flame`      | `#e87a8e` | Primärer Akzent (Coral Sunset)            |
+| `--color-flame-soft` | `#f29bab` | Hover-Akzent                              |
+| `--color-teal`       | `#5fc1d1` | Sekundärer Akzent (sparsam, Cometen-Trail)|
+| `--font-display`     | Big Shoulders Display 700/900 | Headlines, Buttons, Nav   |
+| `--font-body`        | Inter Tight Variable          | Body / UI                 |
 
 ## Deploy (Vercel)
 
@@ -65,14 +91,19 @@ automatisch durch.
 
 ## Rechtliches (DE-Pflicht!)
 
-`/impressum` und `/datenschutz` sind als Platzhalter vorhanden und MÜSSEN
-vor dem Go-Live mit echten Angaben befüllt werden (§ 5 TMG bzw. DSGVO).
+`/impressum` und `/datenschutz` sind aktuell als Platzhalter angelegt und
+MÜSSEN vor dem Go-Live mit echten Angaben gefüllt werden (§ 5 TMG bzw. DSGVO).
+Den Bestandstext der alten Seite (`https://www.swallowsrose.com/impressum/`
+bzw. `/datenschutz/`) am einfachsten manuell rüberkopieren — die Seite blockt
+automatische Fetches.
 
 ## Tech-Stack
 
 - **Astro 6** (statisch, keine schweren Frameworks)
 - **Tailwind CSS v4** via `@tailwindcss/vite`
-- **@fontsource/oswald** + **@fontsource-variable/inter-tight** (lokale Fonts, DSGVO)
+- **@fontsource/big-shoulders-display** + **@fontsource-variable/inter-tight**
+  (lokale Fonts, DSGVO)
 - **@astrojs/sitemap** für Sitemap + Robots
 - **prefers-reduced-motion** wird respektiert (alle Animationen aus)
 - **IntersectionObserver** für Scroll-Reveals (vanilla, kein Lib)
+- **Spotify-Embed** wird erst nach Klick geladen (DSGVO-freundlich)

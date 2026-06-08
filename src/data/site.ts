@@ -2,8 +2,8 @@
 
 export const band = {
   name: "Swallow's Rose",
-  origin: 'Bayern, Germany',
-  // TODO: replace with the real booking address
+  origin: 'Bodenmais, Bayern',
+  // TODO: bestätigen / durch reale Booking-Adresse ersetzen.
   bookingEmail: 'booking@swallowsrose.com',
 };
 
@@ -19,15 +19,15 @@ export const album = {
 export const links = {
   instagram: 'https://www.instagram.com/swallowsrose/',
   youtube: 'https://www.youtube.com/channel/UCWJp8pyROUpRSmTRXNFiTxA',
-  // TODO: fill in once available
+  // TODO: Apple-Music-Artist-URL ergänzen, sobald verfügbar.
   appleMusic: '#',
   shop: 'https://shop.uncle-m.com/cat/index/sCategory/2233',
+  bandcamp: 'https://unclem.bandcamp.com/album/the-beginning',
 };
 
-// TODO: replace with the real Spotify artist URI / playlist embed src.
-// Example artist embed: https://open.spotify.com/embed/artist/<ARTIST_ID>?utm_source=generator
+// Spotify artist embed — wird erst nach Klick geladen (DSGVO, siehe Music.astro).
 export const spotifyEmbedSrc =
-  'https://open.spotify.com/embed/artist/REPLACE_WITH_SPOTIFY_ARTIST_ID?utm_source=generator&theme=0';
+  'https://open.spotify.com/embed/artist/6tJMwSfznqmbuudBww2qUw?utm_source=generator&theme=0';
 
 export type Member = {
   name: string;
@@ -36,6 +36,8 @@ export type Member = {
   photo: string;
 };
 
+// Fotos aus dem picdrop-Set zuschneiden und unter dem jeweiligen Pfad ablegen:
+// https://www.picdrop.com/flogge/gd7DKjaWCw
 export const members: Member[] = [
   { name: 'Dominik', role: 'Vocals', photo: '/img/band/dominik.jpg' },
   { name: 'Manuel', role: 'Rhythm Guitar / Backing Vocals', photo: '/img/band/manuel.jpg' },
@@ -52,40 +54,117 @@ export type TourDate = {
   dateLabelEN: string;
   city: string;
   venue: string;
-  /** "#" if no ticket link yet */
+  /** Leave empty string to hide the ticket link */
   ticketUrl: string;
-  /** Optional note shown as a small tag */
+  /** Optional note shown as a small tag (e.g. festival / support) */
   note?: string;
 };
 
-// TODO: replace these three placeholder rows with real tour dates.
-// Tour with Massendefekt and 100 Kilo Herz, autumn 2026.
+// TODO: Ticket-Links pflegen, sobald verfügbar (leerer String → kein Link).
 export const tourDates: TourDate[] = [
   {
-    date: '2026-10-15',
-    dateLabelDE: '15. Okt 2026',
-    dateLabelEN: 'Oct 15, 2026',
-    city: 'TODO – Stadt',
-    venue: 'TODO – Venue',
-    ticketUrl: '#',
-    note: 'w/ Massendefekt',
+    date: '2026-05-09',
+    dateLabelDE: '09. Mai 2026',
+    dateLabelEN: 'May 9, 2026',
+    city: 'München',
+    venue: 'Atelier von Simon Marchner',
+    ticketUrl: '',
   },
   {
-    date: '2026-10-22',
-    dateLabelDE: '22. Okt 2026',
-    dateLabelEN: 'Oct 22, 2026',
-    city: 'TODO – Stadt',
-    venue: 'TODO – Venue',
-    ticketUrl: '#',
-    note: 'w/ 100 Kilo Herz',
+    date: '2026-06-03',
+    dateLabelDE: '03. Juni 2026',
+    dateLabelEN: 'Jun 3, 2026',
+    city: 'München',
+    venue: 'Backstage',
+    ticketUrl: '',
   },
   {
-    date: '2026-11-05',
-    dateLabelDE: '5. Nov 2026',
-    dateLabelEN: 'Nov 5, 2026',
-    city: 'TODO – Stadt',
-    venue: 'TODO – Venue',
-    ticketUrl: '#',
+    date: '2026-06-05',
+    dateLabelDE: '05. Juni 2026',
+    dateLabelEN: 'Jun 5, 2026',
+    city: 'Bischofsmais',
+    venue: 'Rock the Hill Festival',
+    ticketUrl: '',
+    note: 'Festival',
+  },
+  {
+    date: '2026-06-06',
+    dateLabelDE: '06. Juni 2026',
+    dateLabelEN: 'Jun 6, 2026',
+    city: 'Plzeň (CZ)',
+    venue: 'Kapouk Vita Leto Festival',
+    ticketUrl: '',
+    note: 'Festival',
+  },
+  {
+    date: '2026-06-27',
+    dateLabelDE: '27. Juni 2026',
+    dateLabelEN: 'Jun 27, 2026',
+    city: 'Neumarkt',
+    venue: 'Paradise Shitty Open Air',
+    ticketUrl: '',
+    note: 'Open Air',
+  },
+  {
+    date: '2026-07-05',
+    dateLabelDE: '05. Juli 2026',
+    dateLabelEN: 'Jul 5, 2026',
+    city: 'Empfenbach',
+    venue: 'Festival Holledau',
+    ticketUrl: '',
+    note: 'Festival',
+  },
+  {
+    date: '2026-07-11',
+    dateLabelDE: '11. Juli 2026',
+    dateLabelEN: 'Jul 11, 2026',
+    city: 'Schlüchtern',
+    venue: 'Rock am Hinkelhof',
+    ticketUrl: '',
+    note: 'Festival',
+  },
+  {
+    date: '2026-08-21',
+    dateLabelDE: '21. August 2026',
+    dateLabelEN: 'Aug 21, 2026',
+    city: 'Stetten / Mühldorf',
+    venue: 'Soizfest',
+    ticketUrl: '',
+    note: 'Festival',
+  },
+  {
+    date: '2026-09-12',
+    dateLabelDE: '12. September 2026',
+    dateLabelEN: 'Sep 12, 2026',
+    city: 'Zollernalb',
+    venue: 'U&D Zollernalb',
+    ticketUrl: '',
+  },
+  {
+    date: '2026-09-26',
+    dateLabelDE: '26. September 2026',
+    dateLabelEN: 'Sep 26, 2026',
+    city: 'Kulmbach',
+    venue: 'Falling Leaves Festival',
+    ticketUrl: '',
+    note: 'Festival',
+  },
+  {
+    date: '2026-10-02',
+    dateLabelDE: '02. Oktober 2026',
+    dateLabelEN: 'Oct 2, 2026',
+    city: 'Leipzig',
+    venue: 'Bandhaus',
+    ticketUrl: '',
+  },
+  {
+    date: '2026-11-07',
+    dateLabelDE: '07. November 2026',
+    dateLabelEN: 'Nov 7, 2026',
+    city: 'Salzbergen',
+    venue: 'EMS Noise Rock Fest',
+    ticketUrl: '',
+    note: 'Festival',
   },
 ];
 

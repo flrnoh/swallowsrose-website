@@ -45,16 +45,23 @@ import { tourDates } from '../data/site.ts';
                 {d.note ?? ''}
               </div>
               <div class="col-span-5 sm:col-span-2 text-right">
-                <a
-                  href={d.ticketUrl}
-                  target="_blank"
-                  rel="noopener"
-                  class="inline-flex items-center gap-1 font-display uppercase text-sm tracking-[0.15em] linky"
-                >
-                  <span data-lang="de">{copy.tour.ticketsDE}</span>
-                  <span data-lang="en" hidden>{copy.tour.ticketsEN}</span>
-                  <span aria-hidden="true">&rarr;</span>
-                </a>
+                {d.ticketUrl ? (
+                  <a
+                    href={d.ticketUrl}
+                    target="_blank"
+                    rel="noopener"
+                    class="inline-flex items-center gap-1 font-display uppercase text-sm tracking-[0.15em] linky"
+                  >
+                    <span data-lang="de">{copy.tour.ticketsDE}</span>
+                    <span data-lang="en" hidden>{copy.tour.ticketsEN}</span>
+                    <span aria-hidden="true">&rarr;</span>
+                  </a>
+                ) : (
+                  <span class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-cream)]/35">
+                    <span data-lang="de">Bald</span>
+                    <span data-lang="en" hidden>Soon</span>
+                  </span>
+                )}
               </div>
             </li>
           ))}

@@ -14,7 +14,7 @@
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
     "@fontsource-variable/inter-tight": "^5.2.7",
-    "@fontsource/oswald": "^5.2.8",
+    "@fontsource/big-shoulders-display": "^5.2.5",
     "@tailwindcss/vite": "^4.3.0",
     "astro": "^6.4.4",
     "tailwindcss": "^4.3.0"

@@ -22,3 +22,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# local Claude/Cowork dev tooling
+.claude/
+
+# Vercel
+.vercel/
