@@ -29,3 +29,7 @@ pnpm-debug.log*
 # Vercel
 .vercel/
 .vercel
+
+# temp gallery contact sheet — never commit
+public/_picdrop-sheet.jpg
+public/_picdrop/
