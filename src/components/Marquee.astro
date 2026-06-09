@@ -1,0 +1,32 @@
+---
+interface Props {
+  /** Words/phrases to rotate. Each one gets a ✸ separator between. */
+  items: string[];
+  /** Full-cycle duration in seconds. Smaller = faster. */
+  speed?: number;
+}
+
+const { items, speed = 40 } = Astro.props;
+---
+
+<!--
+  Infinite-scroll marquee bar. The list is rendered twice and animated
+  -50% on the X axis so it loops seamlessly. Disabled by
+  prefers-reduced-motion via the global stylesheet.
+-->
+<div class="marquee" style={`--marquee-duration:${speed}s`} role="presentation">
+  <div class="marquee-track">
+    {
+      [0, 1].map((copy) => (
+        <div class="marquee-list" aria-hidden={copy === 1 ? 'true' : undefined}>
+          {items.map((item) => (
+            <>
+              <span>{item}</span>
+              <span class="sep" aria-hidden="true">✸</span>
+            </>
+          ))}
+        </div>
+      ))
+    }
+  </div>
+</div>

@@ -5,14 +5,15 @@ import { spotifyEmbedSrc, links } from '../data/site.ts';
 
 <section id="music" class="py-20 sm:py-28 border-b border-[color:var(--color-cream)]/10">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <header class="reveal flex items-end justify-between gap-4 mb-10">
-      <h2 class="display text-[clamp(2.5rem,7vw,5.5rem)]">
+    <header class="reveal mb-8 sm:mb-12">
+      <div class="section-mark">
+        <span>// 01 — Stream</span>
+        <span class="section-mark-tag">[ Out Now ]</span>
+      </div>
+      <h2 class="display section-headline">
         <span data-lang="de">{copy.music.headlineDE}</span>
         <span data-lang="en" hidden>{copy.music.headlineEN}</span>
       </h2>
-      <span class="hidden sm:block text-xs uppercase tracking-[0.3em] text-[color:var(--color-cream)]/40">
-        01 / Stream
-      </span>
     </header>
 
     <!--

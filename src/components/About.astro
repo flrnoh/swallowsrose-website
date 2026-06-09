@@ -5,14 +5,15 @@ import { members } from '../data/site.ts';
 
 <section id="about" class="py-20 sm:py-28 border-b border-[color:var(--color-cream)]/10">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <header class="reveal flex items-end justify-between gap-4 mb-10">
-      <h2 class="display text-[clamp(2.5rem,7vw,5.5rem)]">
+    <header class="reveal mb-8 sm:mb-12">
+      <div class="section-mark">
+        <span>// 02 — Band</span>
+        <span class="section-mark-tag">[ Since 2012 ]</span>
+      </div>
+      <h2 class="display section-headline">
         <span data-lang="de">{copy.about.headlineDE}</span>
         <span data-lang="en" hidden>{copy.about.headlineEN}</span>
       </h2>
-      <span class="hidden sm:block text-xs uppercase tracking-[0.3em] text-[color:var(--color-cream)]/40">
-        02 / Band
-      </span>
     </header>
 
     <div class="grid lg:grid-cols-12 gap-10 lg:gap-16">
@@ -33,9 +34,8 @@ import { members } from '../data/site.ts';
         <ul class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {
             members.map((m) => (
-              <li class="group">
-                <figure class="relative aspect-[3/4] overflow-hidden bg-[color:var(--color-ink-soft)] border border-[color:var(--color-cream)]/10">
-                  {/* TODO: drop a real square-ish portrait at /public/img/band/<name>.jpg (e.g. 600x800). */}
+              <li class="polaroid group">
+                <figure class="duotone relative aspect-[3/4] overflow-hidden border-[3px] border-[color:var(--color-cream)] shadow-[6px_6px_0_var(--color-ink-soft)] group-hover:shadow-[8px_8px_0_var(--color-flame)] transition-shadow duration-300">
                   <img
                     src={m.photo}
                     alt={`${m.name} — ${m.role}`}
@@ -43,12 +43,12 @@ import { members } from '../data/site.ts';
                     height="800"
                     loading="lazy"
                     decoding="async"
-                    class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-[1.02] transition-all duration-500"
+                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     onerror="this.style.display='none'"
                   />
                   <figcaption class="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-[color:var(--color-ink)] via-[color:var(--color-ink)]/70 to-transparent">
                     <p class="display text-base leading-none">{m.name}</p>
-                    <p class="mt-1 text-[11px] uppercase tracking-[0.18em] text-[color:var(--color-cream)]/60">
+                    <p class="mt-1 text-[11px] uppercase tracking-[0.18em] text-[color:var(--color-cream)]/70">
                       {m.role}
                     </p>
                   </figcaption>

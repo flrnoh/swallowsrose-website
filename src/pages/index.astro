@@ -6,13 +6,34 @@ import About from '../components/About.astro';
 import Tour from '../components/Tour.astro';
 import Merch from '../components/Merch.astro';
 import Footer from '../components/Footer.astro';
+import Marquee from '../components/Marquee.astro';
 ---
 
 <Layout>
   <Hero />
+  <Marquee
+    items={[
+      "The Beginning",
+      "Out Now",
+      "Uncle M Music",
+      "Swallow's Rose",
+      "Punk Rock from Bavaria",
+    ]}
+    speed={38}
+  />
   <Music />
   <About />
   <Tour />
+  <Marquee
+    items={[
+      "Tour 2026",
+      "w/ Massendefekt",
+      "w/ 100 Kilo Herz",
+      "Open Air Season",
+      "Don't Sleep On It",
+    ]}
+    speed={45}
+  />
   <Merch />
   <Footer />
 </Layout>
