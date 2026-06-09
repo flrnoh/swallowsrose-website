@@ -40,8 +40,6 @@ Swallow’s Rose are back — with the new album “The Beginning”. After thei
   tour: {
     headlineDE: 'Tour',
     headlineEN: 'Tour',
-    supportDE: 'Mit Massendefekt und 100 Kilo Herz im Herbst 2026.',
-    supportEN: 'With Massendefekt and 100 Kilo Herz this autumn 2026.',
     ticketsDE: 'Tickets',
     ticketsEN: 'Tickets',
     emptyDE: 'Termine in Kürze.',
