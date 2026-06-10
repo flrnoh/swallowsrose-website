@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://swallowsrose-website.vercel.app/sitemap-index.xml
+Sitemap: https://swallowsrose.com/sitemap-index.xml
