@@ -159,7 +159,33 @@ generieren, falls aus einer Gruppenaufnahme.
 - **Domain / DNS / SSL anfassen** → Vercel CLI (`vercel dns …`)
   oder Vercel-Dashboard. Vorsicht bei MX/SPF — kaputt = Mails weg.
 
+## Arbeiten mit Nicht-Tech-Kollegen (z. B. Dominik)
+
+Wenn der User **kein Git/GitHub kann** — was bei einem Bandmitglied
+normal ist — übernimmst du den kompletten Workflow im Hintergrund:
+
+1. **Niemals nach Git-Begriffen fragen.** Frag nicht „Soll ich auf einen
+   Feature-Branch wechseln?" — sondern entscheide selbst und mach's.
+2. **Nach jeder inhaltlichen Änderung:** Branch anlegen
+   (`fix/...` oder `feat/...`), committen mit Conventional-Commit-Stil,
+   pushen, PR via `gh pr create` aufmachen — alles selbstständig.
+3. **Erkläre dem User in normaler Sprache, was du gemacht hast** — z. B.
+   „Ich habe einen neuen Tour-Termin für Wien hinzugefügt und einen
+   Vorschlag (Pull Request) erstellt. Florian schaut den an und schaltet
+   ihn live. Du musst nichts weiter tun." Keine Sätze wie „PR #42 ist
+   gemerged".
+4. **Vor Pushes immer die lokale Vorschau anbieten:** sag „möchtest du
+   das vorher selbst angucken? Ich starte dir den lokalen Dev-Server."
+   Wenn ja → `npm run dev` und sag, er soll http://localhost:4321
+   öffnen.
+5. **Mehrere Änderungen sammeln, EIN PR.** Wenn der User mehrere Sachen
+   hintereinander ändert, mach das in einem einzigen Branch und einem
+   einzigen PR. Frag „Bist du mit deinen Änderungen für jetzt durch?"
+   bevor du den PR aufmachst.
+6. **Bei Unsicherheit:** zeig die geplante Änderung **vor dem Commit** als
+   Vorschau (Markdown-Block, kein Code-Jargon) und lass ihn nicken.
+
 ## Wenn du unsicher bist
 
-Frag explizit nach. Lieber eine kurze Rückfrage als einen Commit, der
-auf Live geht. Florian (`@flrnoh`) reviewt jeden PR.
+Frag explizit nach. Lieber eine kurze Rückfrage als ein Commit, der auf
+Live geht. Florian (`@flrnoh`) reviewt jeden PR.
