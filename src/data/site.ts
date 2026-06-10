@@ -57,6 +57,8 @@ export type TourDate = {
   venue: string;
   /** Leave empty string to hide the ticket link */
   ticketUrl: string;
+  /** True when there's no advance sale, only door / box office on the night. */
+  boxOffice?: boolean;
   /** Optional note shown as a small tag (e.g. festival / support) — bilingual */
   noteDE?: string;
   noteEN?: string;
@@ -157,8 +159,9 @@ export const tourDates: TourDate[] = [
     dateLabelEN: 'Sep 26, 2026',
     city: 'Marktschorgast / Kulmbach',
     venue: 'Falling Leaves Festival',
-    // TODO: Ticket-URL ergänzen, sobald 2026er Termin freigeschaltet ist.
+    // Kein VVK — nur Abendkasse.
     ticketUrl: '',
+    boxOffice: true,
     noteDE: 'Festival',
     noteEN: 'Festival',
   },

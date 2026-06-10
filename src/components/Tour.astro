@@ -58,6 +58,11 @@ import { tourDates } from '../data/site.ts';
                     <span data-lang="en" hidden>{copy.tour.ticketsEN}</span>
                     <span aria-hidden="true">&rarr;</span>
                   </a>
+                ) : d.boxOffice ? (
+                  <span class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-cream)]/55">
+                    <span data-lang="de">Abendkasse</span>
+                    <span data-lang="en" hidden>Box office</span>
+                  </span>
                 ) : (
                   <span class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-cream)]/35">
                     <span data-lang="de">Bald</span>
