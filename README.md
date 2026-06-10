@@ -1,9 +1,10 @@
 # Swallow's Rose — Website
 
 Statische One-Pager-Website für die melodische Punkrock-Band **Swallow's Rose**
-aus dem Bayerischen Wald (Bodenmais). Gebaut mit Astro + Tailwind v4, dark
-theme nach der Farbsprache des Album-Artworks „The Beginning", DSGVO-freundlich
-(keine Tracker, keine Google Fonts, Spotify-Embed nur auf Klick).
+aus dem Bayerischen Wald. Gebaut mit Astro + Tailwind v4, dark theme nach der
+Farbsprache des Album-Artworks „The Beginning". Datensparsam: keine Cookies,
+keine Google Fonts, Spotify-Embed nur auf Klick, anonymisierte
+Reichweitenmessung via Vercel Analytics (cookielos, kein Personenbezug).
 
 ## Lokal entwickeln
 
