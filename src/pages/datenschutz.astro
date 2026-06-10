@@ -23,11 +23,14 @@ import Layout from '../layouts/Layout.astro';
       <section>
         <h2 class="display text-2xl mb-3">2. Was diese Seite tut – und was nicht</h2>
         <p>
-          Diese Website ist eine statische Visitenkarte. Wir setzen <strong>keine Tracker</strong>,
-          <strong>keine Analyse-Tools</strong> (kein Google Analytics, kein Meta-Pixel),
-          <strong>keine Marketing-Cookies</strong> und <strong>kein Newsletter-Formular</strong> ein.
+          Diese Website ist eine statische Visitenkarte. Wir setzen
+          <strong>keine Marketing-Cookies</strong>, <strong>kein Google Analytics</strong>,
+          <strong>kein Meta-Pixel</strong> und <strong>kein Newsletter-Formular</strong> ein.
           Schriftarten werden lokal vom selben Server ausgeliefert, nicht über ein
-          Drittanbieter-CDN. Es gibt deshalb auch keinen Cookie-Banner.
+          Drittanbieter-CDN. Für eine grobe, anonyme Reichweitenmessung kommt ein
+          datensparsames Tool unseres Hosters (Vercel Analytics) zum Einsatz – Details
+          dazu in Abschnitt 4. Es gibt keinen Cookie-Banner, weil keine Cookies gesetzt
+          werden, die eine Einwilligung erforderten.
         </p>
       </section>
 
@@ -50,7 +53,35 @@ import Layout from '../layouts/Layout.astro';
       </section>
 
       <section>
-        <h2 class="display text-2xl mb-3">4. Eingebettete Inhalte (Spotify)</h2>
+        <h2 class="display text-2xl mb-3">4. Reichweitenmessung (Vercel Analytics)</h2>
+        <p>
+          Wir nutzen <strong>Vercel Analytics</strong>, einen integrierten Dienst unseres
+          Hosters Vercel Inc. Es werden ausschließlich aggregierte, pseudonymisierte
+          Nutzungsdaten erhoben (Seitenaufrufe pro Pfad, Herkunftsland auf Länderebene,
+          ungefähre Gerätekategorie, anonymisierter Referrer). Vercel Analytics
+          <strong>setzt keine Cookies</strong> und legt
+          <strong>keine Kennung im Browser ab</strong>. Zur eindeutigen Zählung wiederkehrender
+          Besucher wird ein täglich wechselnder, salted Hash auf Basis von IP-Adresse und
+          User-Agent gebildet. Die IP-Adresse selbst wird nach dieser Verarbeitung verworfen
+          und nicht gespeichert. Eine Personenbeziehbarkeit ist damit nicht möglich.
+        </p>
+        <p>
+          Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer
+          datensparsamen Reichweitenmessung zur Optimierung der Inhalte). Du kannst dieser
+          Verarbeitung jederzeit widersprechen — eine E-Mail an die im Impressum genannte
+          Adresse genügt, dann deaktivieren wir das Tracking für deine künftigen Besuche.
+        </p>
+        <p>
+          Da Vercel in den USA sitzt, gelten dieselben Drittland-Garantien wie unter Abschnitt 3.
+          Details zur Funktionsweise und zu den verarbeiteten Datenpunkten:
+          <a href="https://vercel.com/docs/analytics/privacy-policy" target="_blank" rel="noopener" class="linky">
+            vercel.com/docs/analytics/privacy-policy
+          </a>.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="display text-2xl mb-3">5. Eingebettete Inhalte (Spotify)</h2>
         <p>
           Im Bereich „Musik" verlinken wir auf einen Spotify-Player. Dieser wird
           <strong>nicht automatisch geladen</strong>: Erst wenn du aktiv auf den Schalter
@@ -69,7 +100,7 @@ import Layout from '../layouts/Layout.astro';
       </section>
 
       <section>
-        <h2 class="display text-2xl mb-3">5. Externe Links</h2>
+        <h2 class="display text-2xl mb-3">6. Externe Links</h2>
         <p>
           An mehreren Stellen verlinken wir zu externen Anbietern (u. a. Instagram, YouTube,
           Apple Music, Bandcamp, Uncle&nbsp;M Shop). Beim Klick auf einen solchen Link verlässt
@@ -80,7 +111,7 @@ import Layout from '../layouts/Layout.astro';
       </section>
 
       <section>
-        <h2 class="display text-2xl mb-3">6. Browser-Speicherung der Sprachwahl</h2>
+        <h2 class="display text-2xl mb-3">7. Browser-Speicherung der Sprachwahl</h2>
         <p>
           Wenn du oben rechts die Sprache zwischen Deutsch und Englisch umschaltest, merkt sich
           dein Browser deine Wahl in der lokalen Browser-Datenbank (<code>localStorage</code>,
@@ -93,7 +124,7 @@ import Layout from '../layouts/Layout.astro';
       </section>
 
       <section>
-        <h2 class="display text-2xl mb-3">7. Kontaktaufnahme per E-Mail oder Telefon</h2>
+        <h2 class="display text-2xl mb-3">8. Kontaktaufnahme per E-Mail oder Telefon</h2>
         <p>
           Wenn du uns über die im Impressum angegebene E-Mail-Adresse oder Telefonnummer
           kontaktierst, verarbeiten wir die übermittelten Daten (Name, Kontaktdaten, Anliegen)
@@ -104,7 +135,7 @@ import Layout from '../layouts/Layout.astro';
       </section>
 
       <section>
-        <h2 class="display text-2xl mb-3">8. Deine Rechte</h2>
+        <h2 class="display text-2xl mb-3">9. Deine Rechte</h2>
         <p>
           Du hast das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16 DSGVO),
           Löschung (Art. 17 DSGVO), Einschränkung der Verarbeitung (Art. 18 DSGVO),
@@ -115,7 +146,7 @@ import Layout from '../layouts/Layout.astro';
       </section>
 
       <section>
-        <h2 class="display text-2xl mb-3">9. Beschwerde bei einer Aufsichtsbehörde</h2>
+        <h2 class="display text-2xl mb-3">10. Beschwerde bei einer Aufsichtsbehörde</h2>
         <p>
           Unabhängig davon steht dir ein Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde
           zu. Zuständig ist für uns das Bayerische Landesamt für Datenschutzaufsicht (BayLDA),

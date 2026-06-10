@@ -7,6 +7,7 @@ import '@fontsource-variable/inter-tight';
 
 import '../styles/global.css';
 import Nav from '../components/Nav.astro';
+import Analytics from '@vercel/analytics/astro';
 import { band } from '../data/site.ts';
 
 interface Props {
@@ -180,5 +181,11 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'http://localhost');
         });
       })();
     </script>
+
+    <!--
+      Vercel Analytics — cookieless, no PII tracking, anonymised
+      visitor metrics. Documented in /datenschutz section 4.
+    -->
+    <Analytics />
   </body>
 </html>

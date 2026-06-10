@@ -16,6 +16,7 @@
     "@fontsource-variable/inter-tight": "^5.2.7",
     "@fontsource/big-shoulders-display": "^5.2.5",
     "@tailwindcss/vite": "^4.3.0",
+    "@vercel/analytics": "^2.0.1",
     "astro": "^6.4.4",
     "tailwindcss": "^4.3.0"
   }
