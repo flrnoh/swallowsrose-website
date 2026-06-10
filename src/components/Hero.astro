@@ -16,7 +16,7 @@ import { copy } from '../data/copy.ts';
   <div class="relative w-full aspect-[2/1] max-h-[55svh] overflow-hidden bg-[color:var(--color-ink-soft)]">
     <img
       src="/img/hero.jpg"
-      alt="Swallow’s Rose — Bandfoto (v. l. n. r. Manuel, Fabian, Dominik, Michael, Korbinian)"
+      alt="Swallow’s Rose — band photo (l. to r.: Manuel, Fabian, Dominik, Michael, Korbinian)"
       width="2400"
       height="1200"
       class="absolute inset-0 w-full h-full object-cover"
@@ -59,8 +59,14 @@ import { copy } from '../data/copy.ts';
           </h1>
 
           <p class="display mt-5 text-[clamp(1rem,2.2vw,1.5rem)] tracking-[0.05em] text-[color:var(--color-cream)]/85">
-            Das neue Album <span class="text-[color:var(--color-flame)]">&ldquo;{album.title}&rdquo;</span>
-            <span class="text-[color:var(--color-cream)]/55">— Out Now</span>
+            <span data-lang="de">{copy.hero.albumLineDE}</span>
+            <span data-lang="en" hidden>{copy.hero.albumLineEN}</span>
+            <span class="text-[color:var(--color-flame)]">&nbsp;&ldquo;{album.title}&rdquo;</span>
+            <span class="text-[color:var(--color-cream)]/55">
+              &nbsp;—&nbsp;
+              <span data-lang="de">{copy.hero.outNowDE}</span>
+              <span data-lang="en" hidden>{copy.hero.outNowEN}</span>
+            </span>
           </p>
 
           <p class="mt-5 max-w-2xl text-base sm:text-lg text-[color:var(--color-cream)]/70">
@@ -95,12 +101,12 @@ import { copy } from '../data/copy.ts';
           href={album.orderUrl}
           target="_blank"
           rel="noopener"
-          aria-label={`„${album.title}" — Album bei ${album.label} bestellen`}
+          aria-label={`Order “${album.title}” on ${album.label}`}
           class="group relative block w-44 sm:w-56 lg:w-72 mx-auto lg:mx-0 shrink-0 cover-fade-in"
         >
           <img
             src="/img/cover.jpg"
-            alt={`Albumcover „${album.title}" von Swallow's Rose`}
+            alt={`Album cover — Swallow’s Rose: “${album.title}”`}
             width="800"
             height="800"
             loading="eager"

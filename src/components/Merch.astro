@@ -7,25 +7,29 @@ const products = [
   {
     src: '/img/merch/product-1.jpg',
     alt: 'The Beginning — Vinyl LP (Pink Magenta)',
-    label: 'Vinyl LP',
+    labelDE: 'Vinyl LP',
+    labelEN: 'Vinyl LP',
     href: 'https://shop.uncle-m.com/lp/9271/swallows-s-rose-the-beginning-lp/pink-magenta?c=2233',
   },
   {
     src: '/img/merch/product-2.jpg',
     alt: 'Swallow’s Rose — T-Shirt „The Beginning"',
-    label: 'T-Shirt',
+    labelDE: 'T-Shirt',
+    labelEN: 'T-Shirt',
     href: 'https://shop.uncle-m.com/textil/shirts/9303/swallows-s-rose-t-shirt-the-beginning-weiss?c=2233',
   },
   {
     src: '/img/merch/product-3.jpg',
     alt: 'Swallow’s Rose — Snapback Cap „The Beginning"',
-    label: 'Snapback',
+    labelDE: 'Snapback',
+    labelEN: 'Snapback',
     href: 'https://shop.uncle-m.com/stuff/9302/swallows-s-rose-snapback-cap-the-beginning?c=2233',
   },
   {
     src: '/img/merch/product-4.jpg',
     alt: 'Swallow’s Rose — Socken „The Beginning"',
-    label: 'Socken',
+    labelDE: 'Socken',
+    labelEN: 'Socks',
     href: 'https://shop.uncle-m.com/stuff/9304/swallows-s-rose-socken-the-beginning-weiss?c=2233',
   },
 ];
@@ -85,7 +89,8 @@ const products = [
                   />
                 </div>
                 <p class="px-3 py-2 font-display uppercase text-[11px] tracking-[0.18em] text-[color:var(--color-cream)]/70 group-hover:text-[color:var(--color-flame)] transition-colors">
-                  {p.label}
+                  <span data-lang="de">{p.labelDE}</span>
+                  <span data-lang="en" hidden>{p.labelEN}</span>
                   <span aria-hidden="true" class="float-right">&rarr;</span>
                 </p>
               </a>

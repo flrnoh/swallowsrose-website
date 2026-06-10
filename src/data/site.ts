@@ -57,8 +57,9 @@ export type TourDate = {
   venue: string;
   /** Leave empty string to hide the ticket link */
   ticketUrl: string;
-  /** Optional note shown as a small tag (e.g. festival / support) */
-  note?: string;
+  /** Optional note shown as a small tag (e.g. festival / support) — bilingual */
+  noteDE?: string;
+  noteEN?: string;
 };
 
 // Ticket-Links: leerer String → kein Link (zeigt "Bald"). Past dates werden
@@ -87,7 +88,8 @@ export const tourDates: TourDate[] = [
     city: 'Bischofsmais',
     venue: 'Rock the Hill Festival',
     ticketUrl: 'https://rockthehill.de/tickets/',
-    note: 'Festival',
+    noteDE: 'Festival',
+    noteEN: 'Festival',
   },
   {
     date: '2026-06-06',
@@ -96,7 +98,8 @@ export const tourDates: TourDate[] = [
     city: 'Plzeň (CZ)',
     venue: 'Kapouk Vita Leto Festival',
     ticketUrl: '',
-    note: 'Festival',
+    noteDE: 'Festival',
+    noteEN: 'Festival',
   },
   {
     date: '2026-06-27',
@@ -105,7 +108,8 @@ export const tourDates: TourDate[] = [
     city: 'Neumarkt',
     venue: 'Paradise Shitty Open Air',
     ticketUrl: 'https://www.paradise-shitty.de/tickets',
-    note: 'Open Air',
+    noteDE: 'Open Air',
+    noteEN: 'Open Air',
   },
   {
     date: '2026-07-05',
@@ -114,7 +118,8 @@ export const tourDates: TourDate[] = [
     city: 'Empfenbach',
     venue: 'Festival Holledau',
     ticketUrl: 'https://festival-holledau.de/tickets/',
-    note: 'Festival',
+    noteDE: 'Festival',
+    noteEN: 'Festival',
   },
   {
     date: '2026-07-11',
@@ -123,7 +128,8 @@ export const tourDates: TourDate[] = [
     city: 'Schlüchtern',
     venue: 'Rock am Hinkelhof',
     ticketUrl: 'https://www.eventim.de/event/rock-am-hinkelhof-2026-rock-am-hinkelhof-20497606/',
-    note: 'Festival',
+    noteDE: 'Festival',
+    noteEN: 'Festival',
   },
   {
     date: '2026-08-21',
@@ -132,7 +138,8 @@ export const tourDates: TourDate[] = [
     city: 'Stetten / Mühldorf',
     venue: 'Soizfest',
     ticketUrl: 'https://www.eventim-light.com/de/a/663f4ed75085a858ac97e8c8/e/69a460d990e1773b398ee34a',
-    note: 'Festival',
+    noteDE: 'Festival',
+    noteEN: 'Festival',
   },
   {
     date: '2026-09-12',
@@ -141,7 +148,8 @@ export const tourDates: TourDate[] = [
     city: 'Zollernalb',
     venue: 'U&D Zollernalb',
     ticketUrl: 'https://u-d-zollernalb.de/',
-    note: 'Eintritt frei',
+    noteDE: 'Eintritt frei',
+    noteEN: 'Free entry',
   },
   {
     date: '2026-09-26',
@@ -151,7 +159,8 @@ export const tourDates: TourDate[] = [
     venue: 'Falling Leaves Festival',
     // TODO: Ticket-URL ergänzen, sobald 2026er Termin freigeschaltet ist.
     ticketUrl: '',
-    note: 'Festival',
+    noteDE: 'Festival',
+    noteEN: 'Festival',
   },
   {
     date: '2026-10-02',
@@ -168,7 +177,8 @@ export const tourDates: TourDate[] = [
     city: 'Salzbergen',
     venue: 'EMS Noise Rock Fest',
     ticketUrl: 'https://emsnoise-rockfest.de/',
-    note: 'Festival',
+    noteDE: 'Festival',
+    noteEN: 'Festival',
   },
 ];
 

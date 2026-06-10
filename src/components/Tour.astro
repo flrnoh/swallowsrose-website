@@ -43,7 +43,8 @@ import { tourDates } from '../data/site.ts';
                 <p class="mt-1 text-sm text-[color:var(--color-cream)]/65">{d.venue}</p>
               </div>
               <div class="col-span-12 sm:col-span-2 text-sm text-[color:var(--color-cream)]/55 uppercase tracking-[0.15em]">
-                {d.note ?? ''}
+                {d.noteDE && <span data-lang="de">{d.noteDE}</span>}
+                {d.noteEN && <span data-lang="en" hidden>{d.noteEN}</span>}
               </div>
               <div data-tickets-cell class="col-span-5 sm:col-span-2 text-right">
                 {d.ticketUrl ? (
@@ -69,6 +70,5 @@ import { tourDates } from '../data/site.ts';
         </ul>
       )
     }
-    {/* TODO: replace the placeholder rows in src/data/site.ts with real tour dates. */}
   </div>
 </section>

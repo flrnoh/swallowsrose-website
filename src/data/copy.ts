@@ -5,6 +5,10 @@ export const copy = {
   hero: {
     eyebrowDE: 'Out Now',
     eyebrowEN: 'Out Now',
+    albumLineDE: 'Das neue Album',
+    albumLineEN: 'The new album',
+    outNowDE: 'Out Now',
+    outNowEN: 'Out Now',
     descDE: 'Das dritte Album von Swallow’s Rose – erschienen am 6. März 2026 über Uncle M Music.',
     descEN: 'The third album from Swallow’s Rose — out now on Uncle M Music, released March 6, 2026.',
     orderDE: 'Album holen',
