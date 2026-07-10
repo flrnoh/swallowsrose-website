@@ -8,16 +8,31 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "vercel-build": "tsx scripts/deploy-setup.ts && astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "db:generate": "drizzle-kit generate",
+    "db:setup": "tsx scripts/db-setup.ts",
+    "db:seed": "tsx scripts/seed-members.ts"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
+    "@astrojs/vercel": "^10.0.8",
+    "@electric-sql/pglite": "^0.5.4",
     "@fontsource-variable/inter-tight": "^5.2.7",
     "@fontsource/big-shoulders-display": "^5.2.5",
+    "@neondatabase/serverless": "^1.1.0",
     "@tailwindcss/vite": "^4.3.0",
     "@vercel/analytics": "^2.0.1",
     "astro": "^6.4.4",
+    "better-auth": "^1.6.23",
+    "drizzle-orm": "^0.45.2",
+    "nodemailer": "^9.0.3",
     "tailwindcss": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^8.0.1",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.23.0"
   }
 }

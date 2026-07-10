@@ -159,6 +159,54 @@ generieren, falls aus einer Gruppenaufnahme.
 - **Domain / DNS / SSL anfassen** → Vercel CLI (`vercel dns …`)
   oder Vercel-Dashboard. Vorsicht bei MX/SPF — kaputt = Mails weg.
 
+## Mitglieder-Bereich (Crew-Login)
+
+Neben der öffentlichen Seite gibt es einen geschützten Backend-Bereich für
+Bandmitglieder — die Basis der künftigen Band-Verwaltung (Gig-Pipeline,
+Setlists, Finanzen …). Login ist **invite-only per Magic-Link**.
+
+**Stack:** Better Auth + Drizzle. DB: **PGlite lokal** (in-process, `./.pglite`),
+**Neon Postgres in Prod** — Umschaltung allein über `DATABASE_URL`. Astro läuft
+weiter statisch; nur `/login`, `/backend/*` und `/api/auth/*` rendern on-demand
+(`export const prerender = false` + `@astrojs/vercel`-Adapter).
+
+**Wichtige Dateien:**
+| Datei | Zweck |
+| --- | --- |
+| `src/lib/db/schema.ts` | Drizzle-Schema (user/session/account/verification + role/instrument) |
+| `src/lib/db/index.ts` | DB-Factory (PGlite vs. Neon) |
+| `src/lib/auth.ts` | Better-Auth-Server: Magic-Link, invite-only, `disableSignUp` |
+| `src/lib/email.ts` | Magic-Link-Versand (Dev: Konsole, Prod: Brevo-SMTP) |
+| `src/middleware.ts` | Schützt `/backend/*`, legt `locals.user` ab |
+| `scripts/seed-members.ts` | Bandmitglieder anlegen (invite) |
+
+**Lokal starten (null Setup):**
+```bash
+npm run db:setup   # legt Tabellen in ./.pglite an
+npm run db:seed    # legt Bandmitglieder an (echte Mails eintragen!)
+npm run dev        # Login unter /login — Magic-Link erscheint in der Konsole
+```
+
+**Migration + Seed in Prod:** laufen **automatisch beim Vercel-Deploy** über
+`scripts/deploy-setup.ts` (npm-Script `vercel-build`). Grund: die Vercel-Env-Vars
+sind „sensitive"/write-only — `vercel env pull` liefert sie leer, man kommt lokal
+nicht an `DATABASE_URL`. Der Build läuft dort, wo die URL existiert. Non-fatal:
+DB-Fehler brechen den (statischen) Site-Deploy nicht.
+
+**Mitglieder pflegen:** Roster steht als JSON in der Vercel-Env-Var
+`CREW_MEMBERS` (NICHT im Repo — public!). Format:
+`[{"name":"Dominik","email":"…","role":"member","instrument":"Vocals"}]`.
+Beim nächsten Deploy wird abgeglichen (additiv/idempotent; Entfernen = manuell
+in der DB). Lokal ohne `CREW_MEMBERS` greift ein harmloser Dev-Fallback.
+
+**Prod-Env (Vercel):** `DATABASE_URL` (Neon-Integration), `BETTER_AUTH_SECRET`,
+`BETTER_AUTH_URL=https://swallowsrose.com`, `BREVO_SMTP_HOST/USER/PASS`,
+`MAIL_FROM` (in Brevo verifizierter Absender), `CREW_MEMBERS`. Vorlage:
+`.env.example`.
+
+**Schema ändern:** `src/lib/db/schema.ts` → `npm run db:generate`
+(neue SQL-Migration) → `npm run db:setup`.
+
 ## Wenn du unsicher bist
 
 Frag explizit nach. Lieber eine kurze Rückfrage als einen Commit, der

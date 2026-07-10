@@ -17,6 +17,9 @@ pnpm-debug.log*
 .env
 .env.production
 
+# local in-process Postgres (dev only)
+.pglite/
+
 # macOS-specific files
 .DS_Store
 
