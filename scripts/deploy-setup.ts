@@ -8,6 +8,7 @@
 import { migrate as migrateNeon } from 'drizzle-orm/neon-http/migrator';
 import { db, usingPglite } from '../src/lib/db/index.ts';
 import { seedMembers } from './seed-members.ts';
+import { seedTourDates } from './seed-tourdates.ts';
 
 async function main() {
   if (usingPglite) {
@@ -17,6 +18,7 @@ async function main() {
   await migrateNeon(db as never, { migrationsFolder: './drizzle' });
   console.log('[deploy-setup] ✓ Neon-Schema aktuell.');
   await seedMembers();
+  await seedTourDates();
 }
 
 main()
