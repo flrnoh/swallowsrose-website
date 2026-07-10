@@ -1,7 +1,7 @@
 // Personal iCal subscription feed. Public endpoint (calendar apps can't send
 // auth), secured by the unguessable per-member token in the URL.
 import type { APIRoute } from 'astro';
-import { findUserByIcalToken, listEvents } from '../../../lib/events';
+import { findUserByIcalToken, listCalendarEvents } from '../../../lib/events';
 import { buildICS } from '../../../lib/ical';
 
 export const prerender = false;
@@ -11,7 +11,7 @@ export const GET: APIRoute = async ({ params }) => {
   const user = token ? await findUserByIcalToken(token) : null;
   if (!user) return new Response('Not found', { status: 404 });
 
-  const ics = buildICS(await listEvents());
+  const ics = buildICS(await listCalendarEvents());
   return new Response(ics, {
     status: 200,
     headers: {
