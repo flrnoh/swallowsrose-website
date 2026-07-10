@@ -32,7 +32,7 @@ Alle änderbaren Inhalte sind zentralisiert. Such IMMER zuerst in
 
 | Was anpassen                | Datei                                  |
 | --------------------------- | -------------------------------------- |
-| Tourdaten, Tickets, Notes   | `src/data/site.ts` → `tourDates`       |
+| Tourdaten (öffentlich)      | Crew-Kalender `/backend/kalender` (nicht site.ts!) |
 | Bandmitglieder + Rollen     | `src/data/site.ts` → `members`         |
 | Social-Links, Shop, Spotify | `src/data/site.ts` → `links`, `spotifyEmbedSrc` |
 | Booking-Mail, Telefon       | `src/data/site.ts` → `band`            |
@@ -94,27 +94,14 @@ Conventional Commits-Stil, Präfix erklärt den Bereich:
 
 ### Tour-Date hinzufügen
 
-`src/data/site.ts` → neues Objekt ins `tourDates`-Array. Beispiel:
+**Nicht mehr in `site.ts`** — Tourdaten kommen jetzt aus dem Crew-Kalender.
+Im Backend unter **`/backend/kalender`** einen Termin anlegen und **„Öffentlich"**
+ankreuzen; er erscheint automatisch im Tourkalender auf swallowsrose.com
+(die Tour-Section holt sie live von `/api/tour.json`, nur kommende Termine).
+`src/data/site.ts` → `tourDates` ist nur noch der einmalige Seed-Bestand
+(via `scripts/seed-tourdates.ts` beim Deploy in die DB übernommen).
 
-```ts
-{
-  date: '2026-12-15',
-  dateLabelDE: '15. Dezember 2026',
-  dateLabelEN: 'Dec 15, 2026',
-  city: 'Wien',
-  venue: 'Arena',
-  ticketUrl: 'https://oeticket.com/...',
-  noteDE: 'Club',
-  noteEN: 'Club',
-},
-```
-
-Zustände der Tickets-Zelle (priorisiert):
-1. `ticketUrl` gesetzt → klickbarer "Tickets →" Link
-2. `boxOffice: true` → "Abendkasse" / "Box office"
-3. Sonst → "Bald" / "Soon"
-
-Vergangene Daten werden client-seitig automatisch durchgestrichen.
+Tickets-Zelle: `ticketUrl` gesetzt → „Tickets →"-Link, sonst „Bald" / „Soon".
 
 ### Bio-Text ändern (DE + EN)
 
@@ -206,6 +193,17 @@ in der DB). Lokal ohne `CREW_MEMBERS` greift ein harmloser Dev-Fallback.
 
 **Schema ändern:** `src/lib/db/schema.ts` → `npm run db:generate`
 (neue SQL-Migration) → `npm run db:setup`.
+
+### Kalender & iCal (`/backend/kalender`)
+
+Geteilter Band-Kalender (Gigs/Proben/Sonstiges). **Alle Mitglieder** dürfen
+Termine anlegen/bearbeiten/löschen. Kern: `src/lib/events.ts`, API
+`/api/events/{create,update,delete}` (eingeloggt = erlaubt, sonst 403).
+- **iCal-Abo**: pro Mitglied ein geheimer Feed `/api/calendar/<token>.ics`
+  (`src/lib/ical.ts`), zum Abonnieren in Apple/Google Kalender — one-way,
+  aktualisiert sich automatisch (Frequenz bestimmt die Kalender-App).
+- **Öffentlich**: Termine mit `isPublic` erscheinen im Website-Tourkalender
+  (`/api/tour.json` → `Tour.astro` client-seitig, nur kommende).
 
 ## Arbeiten mit Nicht-Tech-Kollegen (z. B. Dominik)
 

@@ -1,6 +1,5 @@
 ---
 import { copy } from '../data/copy.ts';
-import { tourDates } from '../data/site.ts';
 ---
 
 <section id="tour" class="py-20 sm:py-28 border-b border-[color:var(--color-cream)]/10">
@@ -18,62 +17,81 @@ import { tourDates } from '../data/site.ts';
 
     <div class="mb-10"></div>
 
-    {
-      tourDates.length === 0 ? (
-        <p class="reveal display text-2xl text-[color:var(--color-cream)]/60">
-          <span data-lang="de">{copy.tour.emptyDE}</span>
-          <span data-lang="en" hidden>{copy.tour.emptyEN}</span>
-        </p>
-      ) : (
-        <ul class="divide-y divide-[color:var(--color-cream)]/10 border-y border-[color:var(--color-cream)]/10">
-          {tourDates.map((d) => (
-            <li
-              data-tour-row
-              class="reveal group grid grid-cols-12 items-center gap-4 py-5 sm:py-6 transition-colors hover:bg-[color:var(--color-ink-soft)] data-[past=true]:opacity-40 data-[past=true]:hover:bg-transparent"
-            >
-              <time
-                datetime={d.date}
-                class="col-span-12 sm:col-span-4 display text-[clamp(2rem,5vw,3.5rem)] leading-[0.95] tracking-[-0.03em] text-[color:var(--color-flame)]"
-              >
-                <span data-lang="de">{d.dateLabelDE}</span>
-                <span data-lang="en" hidden>{d.dateLabelEN}</span>
-              </time>
-              <div class="col-span-7 sm:col-span-4">
-                <p class="display text-2xl sm:text-3xl leading-none">{d.city}</p>
-                <p class="mt-1 text-sm text-[color:var(--color-cream)]/65">{d.venue}</p>
-              </div>
-              <div class="col-span-12 sm:col-span-2 text-sm text-[color:var(--color-cream)]/55 uppercase tracking-[0.15em]">
-                {d.noteDE && <span data-lang="de">{d.noteDE}</span>}
-                {d.noteEN && <span data-lang="en" hidden>{d.noteEN}</span>}
-              </div>
-              <div data-tickets-cell class="col-span-5 sm:col-span-2 text-right">
-                {d.ticketUrl ? (
-                  <a
-                    href={d.ticketUrl}
-                    target="_blank"
-                    rel="noopener"
-                    class="inline-flex items-center gap-1 font-display uppercase text-sm tracking-[0.15em] linky"
-                  >
-                    <span data-lang="de">{copy.tour.ticketsDE}</span>
-                    <span data-lang="en" hidden>{copy.tour.ticketsEN}</span>
-                    <span aria-hidden="true">&rarr;</span>
-                  </a>
-                ) : d.boxOffice ? (
-                  <span class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-cream)]/55">
-                    <span data-lang="de">Abendkasse</span>
-                    <span data-lang="en" hidden>Box office</span>
-                  </span>
-                ) : (
-                  <span class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-cream)]/35">
-                    <span data-lang="de">Bald</span>
-                    <span data-lang="en" hidden>Soon</span>
-                  </span>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )
-    }
+    {/* Live tour dates — filled from /api/tour.json (public events managed in the crew calendar). */}
+    <ul
+      id="tour-list"
+      class="divide-y divide-[color:var(--color-cream)]/10 border-y border-[color:var(--color-cream)]/10"
+      hidden
+    >
+    </ul>
+
+    <p id="tour-empty" class="reveal display text-2xl text-[color:var(--color-cream)]/60" hidden>
+      <span data-lang="de">{copy.tour.emptyDE}</span>
+      <span data-lang="en" hidden>{copy.tour.emptyEN}</span>
+    </p>
   </div>
 </section>
+
+<script>
+  type TourDate = {
+    date: string;
+    dateLabelDE: string;
+    dateLabelEN: string;
+    city: string;
+    venue: string;
+    ticketUrl: string;
+    note: string;
+  };
+
+  const esc = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  function rowHTML(d: TourDate, lang: string): string {
+    const de = lang !== 'en';
+    const hid = (isDe: boolean) => (isDe === de ? '' : ' hidden');
+    const safeTicket = /^https?:\/\//.test(d.ticketUrl) ? d.ticketUrl : '';
+
+    const note = d.note
+      ? `<div class="col-span-12 sm:col-span-2 text-sm text-[color:var(--color-cream)]/55 uppercase tracking-[0.15em]">${esc(d.note)}</div>`
+      : `<div class="col-span-12 sm:col-span-2"></div>`;
+
+    const tickets = safeTicket
+      ? `<a href="${esc(safeTicket)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 font-display uppercase text-sm tracking-[0.15em] linky">
+           <span data-lang="de"${hid(true)}>Tickets</span><span data-lang="en"${hid(false)}>Tickets</span>
+           <span aria-hidden="true">&rarr;</span>
+         </a>`
+      : `<span class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-cream)]/35">
+           <span data-lang="de"${hid(true)}>Bald</span><span data-lang="en"${hid(false)}>Soon</span>
+         </span>`;
+
+    return `<li data-tour-row class="group grid grid-cols-12 items-center gap-4 py-5 sm:py-6 transition-colors hover:bg-[color:var(--color-ink-soft)]">
+      <time datetime="${esc(d.date)}" class="col-span-12 sm:col-span-4 display text-[clamp(2rem,5vw,3.5rem)] leading-[0.95] tracking-[-0.03em] text-[color:var(--color-flame)]">
+        <span data-lang="de"${hid(true)}>${esc(d.dateLabelDE)}</span><span data-lang="en"${hid(false)}>${esc(d.dateLabelEN)}</span>
+      </time>
+      <div class="col-span-7 sm:col-span-4">
+        <p class="display text-2xl sm:text-3xl leading-none">${esc(d.city)}</p>
+        <p class="mt-1 text-sm text-[color:var(--color-cream)]/65">${esc(d.venue)}</p>
+      </div>
+      ${note}
+      <div data-tickets-cell class="col-span-5 sm:col-span-2 text-right">${tickets}</div>
+    </li>`;
+  }
+
+  (async () => {
+    const list = document.getElementById('tour-list') as HTMLUListElement;
+    const empty = document.getElementById('tour-empty') as HTMLElement;
+    const lang = document.documentElement.lang === 'en' ? 'en' : 'de';
+    try {
+      const res = await fetch('/api/tour.json');
+      const { dates } = (await res.json()) as { dates: TourDate[] };
+      if (!dates?.length) {
+        empty.hidden = false;
+        return;
+      }
+      list.innerHTML = dates.map((d) => rowHTML(d, lang)).join('');
+      list.hidden = false;
+    } catch {
+      empty.hidden = false;
+    }
+  })();
+</script>

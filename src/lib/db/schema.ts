@@ -22,6 +22,8 @@ export const user = pgTable('user', {
   // Invite bookkeeping: set when we seed/invite; activatedAt on first login.
   invitedAt: timestamp('invited_at'),
   activatedAt: timestamp('activated_at'),
+  // Secret token for this member's personal iCal subscription feed.
+  icalToken: text('ical_token').unique(),
 });
 
 export const session = pgTable('session', {
@@ -64,4 +66,27 @@ export const verification = pgTable('verification', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const schema = { user, session, account, verification };
+// Shared band calendar. Public events also feed the marketing site's tour list.
+export const event = pgTable('event', {
+  id: text('id').primaryKey(),
+  // 'gig' | 'probe' | 'sonstiges'
+  type: text('type').notNull().default('sonstiges'),
+  title: text('title').notNull(),
+  startAt: timestamp('start_at').notNull(),
+  endAt: timestamp('end_at'),
+  allDay: boolean('all_day').notNull().default(false),
+  location: text('location'),
+  city: text('city'),
+  ticketUrl: text('ticket_url'),
+  notes: text('notes'),
+  // Public events surface on swallowsrose.com's tour calendar.
+  isPublic: boolean('is_public').notNull().default(false),
+  // Deterministic key for idempotent seeding (e.g. legacy tour dates); null for
+  // member-created events.
+  sourceKey: text('source_key').unique(),
+  createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const schema = { user, session, account, verification, event };
