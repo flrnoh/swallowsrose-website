@@ -17,6 +17,15 @@ export const auth = betterAuth({
   // No passwords anywhere — the only way in is a magic link to an invited member.
   emailAndPassword: { enabled: false },
 
+  // Expose our band-specific columns on the session user so pages/endpoints can
+  // gate on role. `input: false` keeps them server-managed (not user-settable).
+  user: {
+    additionalFields: {
+      role: { type: 'string', required: false, defaultValue: 'member', input: false },
+      instrument: { type: 'string', required: false, input: false },
+    },
+  },
+
   plugins: [
     magicLink({
       // Belt: even if a link were issued, verification never creates a new user.
