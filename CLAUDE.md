@@ -217,6 +217,14 @@ Pipeline-Felder nicht an).
   Tourkalender. Anfragen/Angebote/Absagen bleiben in der Pipeline (kein Leak
   auf die Website, kein Verstopfen des Kalenders).
 
+### Verfügbarkeit (`/backend/verfuegbarkeit`)
+
+Ampel pro anstehendem Termin (`listUpcomingEvents()` = kommende echte Events).
+Jedes Mitglied setzt **ja/vielleicht/nein** (ein Klick), alle sehen die
+Crew-Übersicht (farbige Chips). `availability`-Tabelle (unique je event+member,
+Upsert), API `/api/availability/set` (eingeloggt = eigene Antwort).
+`src/lib/availability.ts`.
+
 ## Arbeiten mit Nicht-Tech-Kollegen (z. B. Dominik)
 
 Wenn der User **kein Git/GitHub kann** — was bei einem Bandmitglied
