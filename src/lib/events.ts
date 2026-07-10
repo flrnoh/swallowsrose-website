@@ -82,6 +82,22 @@ export async function listCalendarEvents() {
     .orderBy(asc(schema.event.startAt));
 }
 
+/** Upcoming real events — used by the availability board. */
+export async function listUpcomingEvents() {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  return db
+    .select()
+    .from(schema.event)
+    .where(
+      and(
+        or(ne(schema.event.type, 'gig'), inArray(schema.event.status, CONFIRMED_STATUSES)),
+        gte(schema.event.startAt, startOfToday),
+      ),
+    )
+    .orderBy(asc(schema.event.startAt));
+}
+
 /** Gigs only, for the booking pipeline. */
 export async function listGigs() {
   return db

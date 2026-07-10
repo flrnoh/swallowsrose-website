@@ -4,7 +4,7 @@
 // required models — column names follow Better Auth's Drizzle convention.
 // We extend `user` with band-specific fields (role, instrument) plus invite
 // bookkeeping (invitedAt/activatedAt) that we manage ourselves.
-import { pgTable, text, timestamp, boolean, integer } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, integer, unique } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
@@ -96,4 +96,21 @@ export const event = pgTable('event', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const schema = { user, session, account, verification, event };
+// Per-member availability for an event (gig/probe). One response per member.
+export const availability = pgTable(
+  'availability',
+  {
+    id: text('id').primaryKey(),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => event.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    status: text('status').notNull(), // 'ja' | 'vielleicht' | 'nein'
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (t) => [unique().on(t.eventId, t.userId)],
+);
+
+export const schema = { user, session, account, verification, event, availability };
