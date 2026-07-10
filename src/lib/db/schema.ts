@@ -4,7 +4,7 @@
 // required models — column names follow Better Auth's Drizzle convention.
 // We extend `user` with band-specific fields (role, instrument) plus invite
 // bookkeeping (invitedAt/activatedAt) that we manage ourselves.
-import { pgTable, text, timestamp, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, integer } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
@@ -81,6 +81,13 @@ export const event = pgTable('event', {
   notes: text('notes'),
   // Public events surface on swallowsrose.com's tour calendar.
   isPublic: boolean('is_public').notNull().default(false),
+  // Booking pipeline (gigs): anfrage → angebot → bestaetigt → gespielt / abgesagt.
+  // Non-gig events stay 'bestaetigt' (they're real dates, not inquiries).
+  status: text('status').notNull().default('bestaetigt'),
+  fee: integer('fee'), // Gage in whole euros
+  contactName: text('contact_name'),
+  contactEmail: text('contact_email'),
+  contactPhone: text('contact_phone'),
   // Deterministic key for idempotent seeding (e.g. legacy tour dates); null for
   // member-created events.
   sourceKey: text('source_key').unique(),

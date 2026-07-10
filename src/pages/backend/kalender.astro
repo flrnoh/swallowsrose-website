@@ -4,10 +4,10 @@
 export const prerender = false;
 
 import Layout from '../../layouts/Layout.astro';
-import { listEvents, getOrCreateIcalToken, EVENT_TYPES } from '../../lib/events';
+import { listCalendarEvents, getOrCreateIcalToken, EVENT_TYPES } from '../../lib/events';
 
 const user = Astro.locals.user!;
-const events = await listEvents();
+const events = await listCalendarEvents();
 const token = await getOrCreateIcalToken(user.id);
 
 const site = Astro.url.origin;

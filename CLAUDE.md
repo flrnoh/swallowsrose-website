@@ -203,7 +203,19 @@ Termine anlegen/bearbeiten/löschen. Kern: `src/lib/events.ts`, API
   (`src/lib/ical.ts`), zum Abonnieren in Apple/Google Kalender — one-way,
   aktualisiert sich automatisch (Frequenz bestimmt die Kalender-App).
 - **Öffentlich**: Termine mit `isPublic` erscheinen im Website-Tourkalender
-  (`/api/tour.json` → `Tour.astro` client-seitig, nur kommende).
+  (`/api/tour.json` → `Tour.astro` client-seitig, nur kommende **& bestätigte**).
+
+### Gig-Pipeline (`/backend/gigs`)
+
+Booking-Workflow auf demselben `event`-Modell (nur `type='gig'`). Status:
+`anfrage → angebot → bestaetigt → gespielt` (+ `abgesagt`), plus `fee` (Gage €)
+und Kontakt-Felder. Status-Wechsel: `/api/events/status`; Anlegen/Bearbeiten
+über die normalen Event-Endpoints (partielles Update — Kalender-Edits fassen
+Pipeline-Felder nicht an).
+- **Trennung**: Nur **bestätigte/gespielte** Gigs gelten als echte Termine —
+  `listCalendarEvents()` speist Kalender + iCal, `listPublicUpcoming()` den
+  Tourkalender. Anfragen/Angebote/Absagen bleiben in der Pipeline (kein Leak
+  auf die Website, kein Verstopfen des Kalenders).
 
 ## Arbeiten mit Nicht-Tech-Kollegen (z. B. Dominik)
 

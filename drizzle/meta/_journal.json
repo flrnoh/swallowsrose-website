@@ -15,6 +15,13 @@
       "when": 1783716254083,
       "tag": "0001_calendar",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783717440186,
+      "tag": "0002_gig_pipeline",
+      "breakpoints": true
     }
   ]
 }
