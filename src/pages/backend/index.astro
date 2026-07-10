@@ -38,7 +38,22 @@ const modules = [
       </button>
     </header>
 
-    <div class="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
+    {
+      user.role === 'bandleader' && (
+        <a
+          href="/backend/mitglieder"
+          class="mt-10 block rounded-xl border border-flame/40 bg-flame/10 p-5 transition-colors hover:border-flame"
+        >
+          <div class="flex items-center justify-between">
+            <h2 class="text-2xl">Mitglieder verwalten</h2>
+            <span class="text-xl text-flame">→</span>
+          </div>
+          <p class="mt-2 text-sm text-cream-soft">Bandmitglieder einladen, Rollen setzen, entfernen</p>
+        </a>
+      )
+    }
+
+    <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
       {
         modules.map((m) => (
           <div class="rounded-xl border border-cream/10 bg-ink-soft/50 p-5">
