@@ -113,4 +113,30 @@ export const availability = pgTable(
   (t) => [unique().on(t.eventId, t.userId)],
 );
 
-export const schema = { user, session, account, verification, event, availability };
+// Day sheet for a confirmed gig — the load-in/schedule/logistics info the band
+// needs on show day. One optional sheet per event (unique eventId).
+export const gigSheet = pgTable('gig_sheet', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id')
+    .notNull()
+    .unique()
+    .references(() => event.id, { onDelete: 'cascade' }),
+  // Schedule — free text (e.g. "16:00", "ab 17 Uhr", "TBC"); relative to the gig day.
+  loadIn: text('load_in'),
+  soundcheck: text('soundcheck'),
+  doors: text('doors'),
+  stageTime: text('stage_time'),
+  setLength: text('set_length'),
+  // Logistics
+  address: text('address'), // full venue address for navigation
+  parking: text('parking'),
+  accommodation: text('accommodation'),
+  catering: text('catering'),
+  backline: text('backline'), // provided backline / tech
+  // On-site contact (separate from the booking contact on the gig itself)
+  contactOnSite: text('contact_on_site'),
+  notes: text('notes'),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const schema = { user, session, account, verification, event, availability, gigSheet };
