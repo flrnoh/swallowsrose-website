@@ -258,6 +258,25 @@ bearbeiten. Kern: `src/lib/setlists.ts`.
   echte **„Live-Set (35 Min)"**-Setlist (nur wenn der Titel noch nicht existiert).
 - Rein Backend, **nichts davon leakt auf die öffentliche Website**.
 
+### Finanzen (`/backend/finanzen`)
+
+Gemeinsames Kassenbuch: Einnahmen (Gage, Merch, Zuschuss) und Ausgaben (Fahrt,
+Unterkunft, Equipment, Merch-Einkauf, Gebühren …). **Alle Mitglieder** dürfen
+buchen. Kern: `src/lib/finance.ts`, APIs `/api/finance/save` + `/api/finance/delete`
+(eingeloggt = erlaubt, sonst 403).
+- **Beträge in Cent** (`amount_cents`, integer) — nie Float. `parseEuro` nimmt
+  „250", „12,50", „1.234,56" entgegen, `fmtEuro` gibt de-DE-Währung aus.
+  `kind` (`einnahme`/`ausgabe`) trägt das Vorzeichen; gespeichert wird positiv.
+- **Zahlungsart** (`method`): `sumup` (Default — die Band nutzt SumUp für
+  Rechnungen & Merch), `bar`, `ueberweisung`, `sonstiges`. Die Übersicht zeigt
+  „Einnahmen nach Zahlungsart" (SumUp-Abgleich).
+- **Kassenstand** = Einnahmen − Ausgaben; **Gagen-Split** = Kassenstand ÷
+  Mitgliederzahl (`getMemberCount()`), live auf der Seite.
+- Optional an einen Gig gekoppelt (`eventId`, `set null` beim Löschen des Gigs).
+- **Keine SumUp-API-Anbindung** (Egress-Policy blockt externe Dienste; keine
+  OAuth-Keys) — bewusst manuelles Buchen, abgleichbar mit dem SumUp-Report.
+- Rein Backend, **nichts davon leakt auf die öffentliche Website**.
+
 ## Arbeiten mit Nicht-Tech-Kollegen (z. B. Dominik)
 
 Wenn der User **kein Git/GitHub kann** — was bei einem Bandmitglied

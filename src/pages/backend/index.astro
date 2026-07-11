@@ -11,7 +11,6 @@ const firstName = user.name?.split(' ')[0] ?? 'Crew';
 
 // Roadmap tiles — placeholders until each module lands.
 const modules = [
-  { title: 'Finanzen', desc: 'Gagen-Split & Rechnungen' },
   { title: 'Kontakte', desc: 'Venues, Booker, Technik' },
 ];
 ---
@@ -76,6 +75,17 @@ const modules = [
         <span class="text-xl text-flame">→</span>
       </div>
       <p class="mt-2 text-sm text-cream-soft">Songbibliothek pflegen & Setlists per Drag-and-drop bauen</p>
+    </a>
+
+    <a
+      href="/backend/finanzen"
+      class="mt-4 block rounded-xl border border-flame/40 bg-flame/10 p-5 transition-colors hover:border-flame"
+    >
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl">Finanzen</h2>
+        <span class="text-xl text-flame">→</span>
+      </div>
+      <p class="mt-2 text-sm text-cream-soft">Kassenbuch: Gagen, Merch & SumUp-Rechnungen, Ausgaben, Gagen-Split</p>
     </a>
 
     <a

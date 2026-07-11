@@ -43,6 +43,13 @@
       "when": 1783762820711,
       "tag": "0005_setlists",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783763579853,
+      "tag": "0006_finance",
+      "breakpoints": true
     }
   ]
 }
