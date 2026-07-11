@@ -178,6 +178,23 @@ export const setlistItem = pgTable('setlist_item', {
   note: text('note'), // per-slot cue (e.g. "Ansage", "tune down")
 });
 
+// Shared band ledger — income (gigs, merch, invoices) and expenses. Amounts are
+// stored in whole cents; `kind` carries the sign. Optionally tied to a gig.
+export const financeEntry = pgTable('finance_entry', {
+  id: text('id').primaryKey(),
+  kind: text('kind').notNull(), // 'einnahme' | 'ausgabe'
+  category: text('category').notNull().default('sonstiges'),
+  title: text('title').notNull(),
+  amountCents: integer('amount_cents').notNull(), // always positive
+  method: text('method'), // 'sumup' | 'bar' | 'ueberweisung' | 'sonstiges'
+  occurredAt: timestamp('occurred_at').notNull(),
+  eventId: text('event_id').references(() => event.id, { onDelete: 'set null' }),
+  notes: text('notes'),
+  createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
 export const schema = {
   user,
   session,
@@ -189,4 +206,5 @@ export const schema = {
   song,
   setlist,
   setlistItem,
+  financeEntry,
 };
