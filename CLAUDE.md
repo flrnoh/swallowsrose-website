@@ -335,30 +335,46 @@ Anzahl Shows (+ Kategorie/„nur mit Mail") → ein **Nearest-Neighbor + 2-opt**
 zusammen (Karte + Etappen + Pitch-Mails). **Rein clientseitig** (Regler →
 Live-Neuberechnung, kein Roundtrip); der Server bettet die vorprojizierten
 Kandidaten (Kontakte mit Coords, ~247) als JSON ein.
-- **Datums-Filter**: bei gesetztem Zeitraum fallen Festivals raus, deren **Monat**
-  nicht ins Fenster passt (Venues/Veranstalter sind nicht saisongebunden → bleiben).
-  Monat kommt aus `src/data/festival-months.json` (`sourceKey→1–12`, einmalig aus
-  „FESTIVALS 2026" abgeleitet, Lücken über die Monats-Trennzeilen gefüllt; Monat ist
-  kein PII → im Repo, nicht in `CREW_CONTACTS`). Server hängt ihn per `sourceKey`
-  an die Kandidaten.
+- **Datums-Filter + Festival-Wissensbasis**: bei gesetztem Zeitraum fallen Festivals
+  raus, deren **Monat** nicht ins Fenster passt (Venues/Veranstalter sind nicht
+  saisongebunden → bleiben). Quelle ist jetzt `src/data/festivals.json`
+  (`sourceKey → { month, outdoor, verified, window? }`), gebaut von
+  `scripts/build-festivals.mjs` (kein PII → im Repo). `outdoor` trennt Open-Air von
+  Halle, `verified` unterscheidet **gegen die Festivalseite geprüfte** Einträge
+  (Monat + Indoor/Outdoor + `window`-Label) von **heuristisch geschätzten**
+  (Nov–Feb ist immer Halle — kein deutsches Open-Air im Winter; Namens-Tokens
+  verfeinern den Rest). Der Generator hängt die Felder per `sourceKey` an die
+  Kandidaten und zeigt sie je Stopp als Badge (☀ Open-Air / ⌂ Halle · ✓ verlässlich
+  / ~ geschätzt) — so traut niemand einem geratenen Monat. **Neue/korrigierte
+  Festivals**: `VERIFIED`-Overlay in `build-festivals.mjs` pflegen und
+  `node scripts/build-festivals.mjs` laufen lassen (idempotent, liest den Monat aus
+  `festivals.json`). Löste die frühere, aus Trennzeilen geratene `festival-months.json` ab.
 - **Manuell anpassen**: jeder Stopp hat ✕ (entfernen), „Weitere in der Nähe" bietet
   die nächstgelegenen Pool-Kandidaten zum Hinzufügen; danach re-2opt. „↻ Neu
   vorschlagen" setzt auf den Auto-Vorschlag zurück (Regler-Änderung ebenso).
 - **Sammelmail**: `mailto:` mit allen Route-Mails im **BCC** + Pitch-Vorlage
-  (Betreff/Body); plus „E-Mails kopieren".
+  (Betreff/Body); plus „E-Mails kopieren". Der Pitch nennt echte Belege
+  (Album/Uncle M/SBÄM, Tour-Historie Dropkick Murphys/Flogging Molly/Less Than Jake),
+  macht das Ja leicht (Headliner **oder** Support, faire Gage, eigene Anlage) und
+  zieht Zeitraum + Region live rein. Die Belegzahlen (Streaming/Draw) trägt die Band
+  **einmal in die `PROOF`-Konstante** in `generator.astro` ein — leer = die Zeile
+  fällt weg (kein Platzhalter landet im Versand).
 - **Vollständig self-contained, kein externer Dienst** (Egress-frei): Kern
   `src/lib/geo.ts` — `geocode(city)`, `haversineKm`, `projectUnit` (DACH-BBox →
   Unit-Space). Koordinaten aus `src/data/geo-cities.json`: normalisierte
-  Stadt→[lat,lng]-Teilmenge (~225 Orte, 6 KB), **einmalig** aus den öffentlichen
+  Stadt→[lat,lng]-Teilmenge (~228 Orte, 6 KB), **einmalig** aus den öffentlichen
   GeoNames-Postleitzahl-Dumps (DE/AT/CZ, CC-BY) für unsere Gig-/Kontakt-Städte
-  erzeugt. Nicht gematchte Städte (~18 %, obskure Festival-Weiler/Tippfehler)
+  erzeugt (Achtung Namensdubletten: Oberhausen war fälschlich das bayerische statt
+  des Ruhrgebiets — bei neuen Städten die richtige Region prüfen). Nicht gematchte
+  Städte (~18 %, obskure Festival-Weiler/Tippfehler)
   plotten einfach nicht (Hinweis „N ohne verortbare Stadt").
 - **Normalisierung** (`normCity`, muss synchron zur Bau-Logik von
   `geo-cities.json` bleiben): lower, ß→ss, Diakritika strippen, „(AT)/(CZ)"
   entfernen, nur `[a-z0-9]`. Neue Städte → Teilmenge neu erzeugen.
-- **Geplant:** Phase 3 = Hotel-/Gastro-Kontakt-Kategorien pro Stopp; Enrichment =
-  Festival-Monate aus „FESTIVALS 2026" für saisonales Matching (Datums-Filter im
-  Generator).
+- **Geplant:** Phase 3 = Hotel-/Gastro-Kontakt-Kategorien pro Stopp; mehr
+  **verifizierte** Festivals ins `VERIFIED`-Overlay (aktuell 5 web-geprüft, Rest
+  geschätzt); ausländische Festival-Städte (SI/weitere) in `geo-cities.json`
+  aufnehmen, damit z. B. Punk Rock Holiday plottet.
 
 ## Arbeiten mit Nicht-Tech-Kollegen (z. B. Dominik)
 
