@@ -139,4 +139,54 @@ export const gigSheet = pgTable('gig_sheet', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const schema = { user, session, account, verification, event, availability, gigSheet };
+// Song library — the band's repertoire. Setlists are built from these rows.
+export const song = pgTable('song', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  artist: text('artist'), // null = own song (Swallow's Rose); set for covers
+  durationSeconds: integer('duration_seconds'), // null = unknown
+  notes: text('notes'), // tuning, key, cues …
+  active: boolean('active').notNull().default(true),
+  // Deterministic key for idempotent seeding (album tracks); null for
+  // member-added songs.
+  sourceKey: text('source_key').unique(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// A named, ordered setlist — optionally tied to a gig (event).
+export const setlist = pgTable('setlist', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  eventId: text('event_id').references(() => event.id, { onDelete: 'set null' }),
+  notes: text('notes'),
+  createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// Ordered songs within a setlist. position = 0-based order; a song may repeat.
+export const setlistItem = pgTable('setlist_item', {
+  id: text('id').primaryKey(),
+  setlistId: text('setlist_id')
+    .notNull()
+    .references(() => setlist.id, { onDelete: 'cascade' }),
+  songId: text('song_id')
+    .notNull()
+    .references(() => song.id, { onDelete: 'cascade' }),
+  position: integer('position').notNull(),
+  note: text('note'), // per-slot cue (e.g. "Ansage", "tune down")
+});
+
+export const schema = {
+  user,
+  session,
+  account,
+  verification,
+  event,
+  availability,
+  gigSheet,
+  song,
+  setlist,
+  setlistItem,
+};

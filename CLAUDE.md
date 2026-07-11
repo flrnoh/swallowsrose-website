@@ -239,6 +239,25 @@ Crew-Übersicht (farbige Chips). `availability`-Tabelle (unique je event+member,
 Upsert), API `/api/availability/set` (eingeloggt = eigene Antwort).
 `src/lib/availability.ts`.
 
+### Setlists (`/backend/setlists`)
+
+Songbibliothek + benannte, geordnete Setlists. **Alle Mitglieder** dürfen
+bearbeiten. Kern: `src/lib/setlists.ts`.
+- **Songbibliothek** (`song`-Tabelle): Titel, `artist` (nur bei Covern), Länge
+  (`durationSeconds`, Eingabe als `m:ss`), Notizen (Tuning/Key/Cues), `active`.
+  API `/api/setlist/song` (action `create`/`update`/`delete`).
+- **Setlists** (`setlist` + `setlist_item`): Übersicht/Anlegen auf
+  `/backend/setlists`, Editor auf `/backend/setlists/[id]` mit **Drag-and-drop**-
+  Reihenfolge, Song-Picker aus der Bibliothek, Cue je Slot, laufender
+  Gesamtlänge. Optional mit einem Gig verknüpfbar (`eventId`, `set null` beim
+  Löschen des Events). APIs: `/api/setlist/save` (Kopf), `/api/setlist/delete`,
+  `/api/setlist/items` (action `add`/`remove`/`note`/`reorder`).
+- **Seed** (`scripts/seed-songs.ts`, läuft im Deploy): Album „The Beginning"
+  (Spotify) + Live-Repertoire (Downfall, Promises, So Sail On, Live For Today)
+  + Cover „Boys of Summer". Idempotent über `source_key`. Dazu einmalig die
+  echte **„Live-Set (35 Min)"**-Setlist (nur wenn der Titel noch nicht existiert).
+- Rein Backend, **nichts davon leakt auf die öffentliche Website**.
+
 ## Arbeiten mit Nicht-Tech-Kollegen (z. B. Dominik)
 
 Wenn der User **kein Git/GitHub kann** — was bei einem Bandmitglied
