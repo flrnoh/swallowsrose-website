@@ -9,7 +9,7 @@
 export type SeedContact = {
   sourceKey: string;
   name: string;
-  kind: 'veranstalter' | 'venue' | 'band' | 'agentur' | 'label' | 'technik' | 'sonstiges';
+  kind: 'veranstalter' | 'festival' | 'venue' | 'band' | 'agentur' | 'label' | 'technik' | 'sonstiges';
   person?: string;
   email?: string;
   phone?: string;

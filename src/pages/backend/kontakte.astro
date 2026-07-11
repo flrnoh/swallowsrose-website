@@ -5,8 +5,21 @@ export const prerender = false;
 
 import Layout from '../../layouts/Layout.astro';
 import { listContacts, KINDS, KIND_LABEL } from '../../lib/contacts';
+import { listGigs } from '../../lib/events';
 
 const contacts = await listContacts();
+
+// Gigs linked to each contact (contactId), for the reverse "Kontakt → Gig" view.
+const tz = 'Europe/Berlin';
+const fmtDay = (d: Date) =>
+  new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'short', year: '2-digit', timeZone: tz }).format(d);
+const gigsByContact = new Map<string, { id: string; title: string; startAt: Date }[]>();
+for (const g of await listGigs()) {
+  if (!g.contactId) continue;
+  const list = gigsByContact.get(g.contactId) ?? [];
+  list.push({ id: g.id, title: g.title, startAt: g.startAt });
+  gigsByContact.set(g.contactId, list);
+}
 
 // Group by kind in a sensible order; only render groups that have entries.
 const groups = KINDS.map((k) => ({
@@ -93,7 +106,8 @@ const clientContacts = contacts.map((c) => ({
             <ul class="flex flex-col gap-2">
               {g.items.map((c) => (
                 <li
-                  class="flex flex-wrap items-start gap-x-4 gap-y-2 rounded-xl border border-cream/10 bg-ink-soft/50 p-4"
+                  id={`c-${c.id}`}
+                  class="flex scroll-mt-24 flex-wrap items-start gap-x-4 gap-y-2 rounded-xl border border-cream/10 bg-ink-soft/50 p-4 target:border-flame"
                   data-contact
                   data-id={c.id}
                   data-search={[c.name, c.person, c.email, c.phone, c.instagram, c.city, c.notes].filter(Boolean).join(' ').toLowerCase()}
@@ -119,6 +133,16 @@ const clientContacts = contacts.map((c) => ({
                       )}
                     </div>
                     {c.notes && <p class="mt-1 text-xs text-cream/40">{c.notes}</p>}
+                    {gigsByContact.has(c.id) && (
+                      <div class="mt-1.5 flex flex-wrap gap-x-2 gap-y-1 text-xs">
+                        <span class="text-cream/40">Gigs:</span>
+                        {gigsByContact.get(c.id)!.map((g) => (
+                          <a href={`/backend/gigs#gig-${g.id}`} class="text-teal transition-colors hover:text-flame">
+                            {g.title} ({fmtDay(g.startAt)})
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div class="flex shrink-0 items-center gap-2">
                     <button data-edit class="rounded-lg border border-cream/15 px-3 py-1.5 text-xs uppercase tracking-[0.15em] text-cream-soft transition-colors hover:border-flame hover:text-flame">Bearb.</button>

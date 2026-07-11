@@ -5,9 +5,18 @@ export const prerender = false;
 
 import Layout from '../../layouts/Layout.astro';
 import { listGigs, STATUSES } from '../../lib/events';
+import { listContacts, KIND_LABEL, KINDS } from '../../lib/contacts';
 
 const user = Astro.locals.user!;
 const gigs = await listGigs();
+// Address-book contacts, for the picker + resolving a gig's linked contact name.
+const contacts = await listContacts();
+const contactById = new Map(contacts.map((c) => [c.id, c]));
+// Grouped by kind for the <optgroup> picker (Veranstalter first).
+const contactGroups = KINDS.map((k) => ({
+  label: KIND_LABEL[k],
+  items: contacts.filter((c) => c.kind === k),
+})).filter((g) => g.items.length);
 
 const statusLabel: Record<string, string> = {
   anfrage: 'Anfrage',
@@ -51,6 +60,7 @@ const clientGigs = gigs.map((g) => ({
   contactName: g.contactName ?? '',
   contactEmail: g.contactEmail ?? '',
   contactPhone: g.contactPhone ?? '',
+  contactId: g.contactId ?? '',
 }));
 ---
 
@@ -86,7 +96,18 @@ const clientGigs = gigs.map((g) => ({
           class="rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame" />
         <input id="g-ticket" placeholder="Ticket-Link (optional)" autocomplete="off"
           class="rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame" />
-        <input id="g-contact-name" placeholder="Ansprechpartner" autocomplete="off"
+        <select id="g-contact" title="Kontakt aus dem Adressbuch verknüpfen"
+          class="rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none focus:border-flame sm:col-span-2">
+          <option value="">— Kontakt aus Adressbuch (optional) —</option>
+          {contactGroups.map((grp) => (
+            <optgroup label={grp.label}>
+              {grp.items.map((c) => (
+                <option value={c.id}>{c.name}{c.city ? ` · ${c.city}` : ''}</option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+        <input id="g-contact-name" placeholder="Ansprechpartner (frei)" autocomplete="off"
           class="rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame" />
         <input id="g-contact-email" placeholder="Kontakt E-Mail" autocomplete="off"
           class="rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame" />
@@ -121,7 +142,7 @@ const clientGigs = gigs.map((g) => ({
             </p>
             <ul class="flex flex-col gap-2">
               {g.items.map((gig) => (
-                <li class={`flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-cream/10 bg-ink-soft/50 p-4 ${gig.status === 'abgesagt' ? 'opacity-50' : ''}`} data-gig data-id={gig.id}>
+                <li id={`gig-${gig.id}`} class={`flex scroll-mt-24 flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-cream/10 bg-ink-soft/50 p-4 target:border-flame ${gig.status === 'abgesagt' ? 'opacity-50' : ''}`} data-gig data-id={gig.id}>
                   <div class="w-24 shrink-0">
                     <div class="text-sm text-flame">{fmtDay(gig.startAt)}</div>
                     <div class="text-xs text-cream/40">{gig.allDay ? '' : fmtTime(gig.startAt)}</div>
@@ -135,6 +156,13 @@ const clientGigs = gigs.map((g) => ({
                       {[gig.city, gig.location].filter(Boolean).join(' · ')}
                       {gig.fee != null ? ` · ${gig.fee} €` : ''}
                     </div>
+                    {gig.contactId && contactById.get(gig.contactId) && (
+                      <div class="truncate text-xs">
+                        <a href={`/backend/kontakte#c-${gig.contactId}`} class="text-teal transition-colors hover:text-flame">
+                          ↳ {contactById.get(gig.contactId)!.name}
+                        </a>
+                      </div>
+                    )}
                     {(gig.contactName || gig.contactEmail || gig.contactPhone) && (
                       <div class="truncate text-xs text-cream/40">
                         {[gig.contactName, gig.contactEmail, gig.contactPhone].filter(Boolean).join(' · ')}
@@ -166,7 +194,7 @@ const clientGigs = gigs.map((g) => ({
   type Gig = {
     id: string; title: string; startAt: string; location: string; city: string;
     ticketUrl: string; notes: string; isPublic: boolean; status: string; fee: number | null;
-    contactName: string; contactEmail: string; contactPhone: string;
+    contactName: string; contactEmail: string; contactPhone: string; contactId: string;
   };
   const gigs: Gig[] = JSON.parse(document.getElementById('gigs-data')!.textContent || '[]');
   const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
@@ -197,6 +225,7 @@ const clientGigs = gigs.map((g) => ({
     $('g-id').value = '';
     FIELDS.forEach((id) => (($(id) as HTMLInputElement).value = ''));
     ($('g-status') as unknown as HTMLSelectElement).value = 'anfrage';
+    ($('g-contact') as unknown as HTMLSelectElement).value = '';
     $('g-public').checked = false;
     formTitle.textContent = 'Neue Anfrage';
     cancel.hidden = true;
@@ -214,6 +243,7 @@ const clientGigs = gigs.map((g) => ({
     $('g-contact-name').value = g.contactName;
     $('g-contact-email').value = g.contactEmail;
     $('g-contact-phone').value = g.contactPhone;
+    ($('g-contact') as unknown as HTMLSelectElement).value = g.contactId;
     ($('g-notes') as unknown as HTMLTextAreaElement).value = g.notes;
     $('g-public').checked = g.isPublic;
     formTitle.textContent = 'Gig bearbeiten';
@@ -240,6 +270,7 @@ const clientGigs = gigs.map((g) => ({
       contactName: $('g-contact-name').value.trim(),
       contactEmail: $('g-contact-email').value.trim(),
       contactPhone: $('g-contact-phone').value.trim(),
+      contactId: ($('g-contact') as unknown as HTMLSelectElement).value || null,
       notes: ($('g-notes') as unknown as HTMLTextAreaElement).value.trim(),
       isPublic: $('g-public').checked,
     };

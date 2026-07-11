@@ -6,11 +6,12 @@ import { randomUUID } from 'node:crypto';
 import { auth } from './auth';
 import { db, schema } from './db';
 
-export const KINDS = ['veranstalter', 'venue', 'band', 'agentur', 'label', 'technik', 'sonstiges'] as const;
+export const KINDS = ['veranstalter', 'festival', 'venue', 'band', 'agentur', 'label', 'technik', 'sonstiges'] as const;
 export type Kind = (typeof KINDS)[number];
 
 export const KIND_LABEL: Record<Kind, string> = {
   veranstalter: 'Veranstalter',
+  festival: 'Festival',
   venue: 'Venue',
   band: 'Band',
   agentur: 'Agentur',
