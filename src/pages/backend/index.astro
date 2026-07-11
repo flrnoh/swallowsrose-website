@@ -10,9 +10,7 @@ const user = Astro.locals.user!;
 const firstName = user.name?.split(' ')[0] ?? 'Crew';
 
 // Roadmap tiles — placeholders until each module lands.
-const modules = [
-  { title: 'Kontakte', desc: 'Venues, Booker, Technik' },
-];
+const modules: { title: string; desc: string }[] = [];
 ---
 
 <Layout title="Crew-Bereich — Swallow's Rose" chrome={false}>
@@ -99,6 +97,17 @@ const modules = [
       <p class="mt-2 text-sm text-cream-soft">Ampel pro Termin: sag ob du kannst, sieh wer dabei ist</p>
     </a>
 
+    <a
+      href="/backend/kontakte"
+      class="mt-4 block rounded-xl border border-flame/40 bg-flame/10 p-5 transition-colors hover:border-flame"
+    >
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl">Kontakte</h2>
+        <span class="text-xl text-flame">→</span>
+      </div>
+      <p class="mt-2 text-sm text-cream-soft">Adressbuch: Veranstalter, Venues, Bands, Agenturen & Technik</p>
+    </a>
+
     {
       user.role === 'bandleader' && (
         <a
@@ -114,22 +123,24 @@ const modules = [
       )
     }
 
-    <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-      {
-        modules.map((m) => (
-          <div class="rounded-xl border border-cream/10 bg-ink-soft/50 p-5">
-            <div class="flex items-center justify-between">
-              <h2 class="text-2xl">{m.title}</h2>
-              <span class="text-[10px] uppercase tracking-[0.2em] text-cream/30">bald</span>
+    {
+      modules.length > 0 && (
+        <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {modules.map((m) => (
+            <div class="rounded-xl border border-cream/10 bg-ink-soft/50 p-5">
+              <div class="flex items-center justify-between">
+                <h2 class="text-2xl">{m.title}</h2>
+                <span class="text-[10px] uppercase tracking-[0.2em] text-cream/30">bald</span>
+              </div>
+              <p class="mt-2 text-sm text-cream-soft">{m.desc}</p>
             </div>
-            <p class="mt-2 text-sm text-cream-soft">{m.desc}</p>
-          </div>
-        ))
-      }
-    </div>
+          ))}
+        </div>
+      )
+    }
 
     <p class="mt-12 text-xs text-cream/30">
-      Das ist erst mal die Tür. Die Module oben bauen wir Schritt für Schritt aus.
+      Alle Kern-Module stehen. Wächst weiter, wie die Band es braucht.
     </p>
   </section>
 </Layout>
