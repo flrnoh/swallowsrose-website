@@ -195,6 +195,29 @@ export const financeEntry = pgTable('finance_entry', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+// Shared contact directory — the band's address book: promoters (Veranstalter),
+// venues, peer bands (support/networking), agencies, tech. A gig's booking
+// contact can be looked up here. Purely backend; nothing leaks to the website.
+export const contact = pgTable('contact', {
+  id: text('id').primaryKey(),
+  // Primary label: band/festival/venue name, or a person's name.
+  name: text('name').notNull(),
+  // 'veranstalter' | 'venue' | 'band' | 'agentur' | 'label' | 'technik' | 'sonstiges'
+  kind: text('kind').notNull().default('sonstiges'),
+  person: text('person'), // Ansprechpartner, if distinct from name
+  email: text('email'),
+  phone: text('phone'),
+  instagram: text('instagram'), // handle or note (e.g. "Instagram", "@name")
+  city: text('city'),
+  notes: text('notes'), // free note ("Persönliche Komponente", welcher Gig …)
+  // Deterministic key for idempotent seeding (legacy Drive lists); null for
+  // member-added contacts.
+  sourceKey: text('source_key').unique(),
+  createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
 export const schema = {
   user,
   session,
@@ -207,4 +230,5 @@ export const schema = {
   setlist,
   setlistItem,
   financeEntry,
+  contact,
 };

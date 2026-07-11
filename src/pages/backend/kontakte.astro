@@ -1,0 +1,249 @@
+---
+// Contact directory — the band's address book: promoters, venues, peer bands,
+// agencies, tech. Any logged-in member may edit. Purely backend, never public.
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+import { listContacts, KINDS, KIND_LABEL } from '../../lib/contacts';
+
+const contacts = await listContacts();
+
+// Group by kind in a sensible order; only render groups that have entries.
+const groups = KINDS.map((k) => ({
+  kind: k,
+  label: KIND_LABEL[k],
+  items: contacts.filter((c) => c.kind === k),
+})).filter((g) => g.items.length);
+
+const clientContacts = contacts.map((c) => ({
+  id: c.id,
+  name: c.name,
+  kind: c.kind,
+  person: c.person ?? '',
+  email: c.email ?? '',
+  phone: c.phone ?? '',
+  instagram: c.instagram ?? '',
+  city: c.city ?? '',
+  notes: c.notes ?? '',
+}));
+---
+
+<Layout title="Kontakte — Swallow's Rose Crew" chrome={false}>
+  <section class="mx-auto min-h-[100dvh] max-w-3xl px-6 py-16">
+    <a href="/backend" class="mb-8 inline-block text-xs uppercase tracking-[0.2em] text-cream-soft transition-colors hover:text-flame">
+      ← Crew-Bereich
+    </a>
+
+    <p class="mb-2 text-xs uppercase tracking-[0.3em] text-flame">Netzwerk</p>
+    <h1 class="text-5xl">Kontakte</h1>
+    <p class="mt-3 text-sm text-cream-soft">Veranstalter, Venues, Bands, Agenturen & Technik — das Adressbuch der Band. Nur intern.</p>
+
+    <!-- Suche -->
+    <input
+      id="c-search"
+      type="search"
+      placeholder="Suchen … (Name, Ort, Mail, Notiz)"
+      autocomplete="off"
+      class="mt-8 w-full rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame"
+    />
+
+    <!-- Anlegen / Bearbeiten -->
+    <form id="c-form" class="mt-4 rounded-xl border border-cream/10 bg-ink-soft/50 p-5">
+      <h2 id="form-title" class="text-2xl">Neuer Kontakt</h2>
+      <input type="hidden" id="c-id" />
+      <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <input id="c-name" required placeholder="Name (Person, Band, Festival …)" autocomplete="off"
+          class="rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame sm:col-span-2" />
+        <select id="c-kind" class="rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none focus:border-flame">
+          {KINDS.map((k) => <option value={k} selected={k === 'veranstalter'}>{KIND_LABEL[k]}</option>)}
+        </select>
+        <input id="c-person" placeholder="Ansprechpartner" autocomplete="off"
+          class="rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame" />
+        <input id="c-email" type="email" placeholder="E-Mail" autocomplete="off"
+          class="rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame" />
+        <input id="c-phone" placeholder="Telefon" autocomplete="off"
+          class="rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame" />
+        <input id="c-instagram" placeholder="Instagram / Handle" autocomplete="off"
+          class="rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame" />
+        <input id="c-city" placeholder="Ort" autocomplete="off"
+          class="rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame" />
+        <textarea id="c-notes" placeholder="Notizen (optional)" rows="2"
+          class="rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame sm:col-span-2"></textarea>
+      </div>
+      <div class="mt-5 flex items-center gap-4">
+        <button id="c-submit" type="submit"
+          class="rounded-lg bg-flame px-5 py-3 font-display text-lg uppercase tracking-wide text-ink transition-colors hover:bg-flame-soft disabled:opacity-50">
+          Speichern
+        </button>
+        <button id="c-cancel" type="button" hidden class="text-xs uppercase tracking-[0.15em] text-cream-soft hover:text-flame">Abbrechen</button>
+        <p id="c-msg" role="status" class="text-sm text-teal" hidden></p>
+      </div>
+    </form>
+
+    <!-- Verzeichnis -->
+    <div class="mt-10">
+      {contacts.length === 0 && <p class="text-sm text-cream/40">Noch keine Kontakte — leg oben den ersten an.</p>}
+      <p id="c-empty" hidden class="text-sm text-cream/40">Kein Kontakt passt zur Suche.</p>
+      {
+        groups.map((g) => (
+          <div class="mb-6" data-group data-kind={g.kind}>
+            <p class="mb-2 text-xs uppercase tracking-[0.2em] text-flame">
+              {g.label} (<span data-group-count>{g.items.length}</span>)
+            </p>
+            <ul class="flex flex-col gap-2">
+              {g.items.map((c) => (
+                <li
+                  class="flex flex-wrap items-start gap-x-4 gap-y-2 rounded-xl border border-cream/10 bg-ink-soft/50 p-4"
+                  data-contact
+                  data-id={c.id}
+                  data-search={[c.name, c.person, c.email, c.phone, c.instagram, c.city, c.notes].filter(Boolean).join(' ').toLowerCase()}
+                >
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-x-2">
+                      <span class="text-lg">{c.name}</span>
+                      {c.person && <span class="text-sm text-cream-soft">· {c.person}</span>}
+                    </div>
+                    <div class="mt-1 flex flex-col gap-0.5 text-sm text-cream-soft">
+                      {c.email && (
+                        <a href={`mailto:${c.email}`} class="w-fit truncate text-teal transition-colors hover:text-flame">
+                          {c.email}
+                        </a>
+                      )}
+                      {c.phone && (
+                        <a href={`tel:${c.phone.replace(/\s+/g, '')}`} class="w-fit text-cream-soft transition-colors hover:text-flame">
+                          {c.phone}
+                        </a>
+                      )}
+                      {(c.instagram || c.city) && (
+                        <span class="text-cream/45">{[c.city, c.instagram].filter(Boolean).join(' · ')}</span>
+                      )}
+                    </div>
+                    {c.notes && <p class="mt-1 text-xs text-cream/40">{c.notes}</p>}
+                  </div>
+                  <div class="flex shrink-0 items-center gap-2">
+                    <button data-edit class="rounded-lg border border-cream/15 px-3 py-1.5 text-xs uppercase tracking-[0.15em] text-cream-soft transition-colors hover:border-flame hover:text-flame">Bearb.</button>
+                    <button data-del class="rounded-lg border border-cream/15 px-3 py-1.5 text-xs uppercase tracking-[0.15em] text-cream-soft transition-colors hover:border-flame hover:text-flame">Löschen</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <script id="contacts-data" type="application/json" set:html={JSON.stringify(clientContacts)}></script>
+</Layout>
+
+<script>
+  type Contact = {
+    id: string; name: string; kind: string; person: string; email: string;
+    phone: string; instagram: string; city: string; notes: string;
+  };
+  const contacts: Contact[] = JSON.parse(document.getElementById('contacts-data')!.textContent || '[]');
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+
+  const form = document.getElementById('c-form') as HTMLFormElement;
+  const msg = document.getElementById('c-msg') as HTMLParagraphElement;
+  const submit = document.getElementById('c-submit') as HTMLButtonElement;
+  const cancel = document.getElementById('c-cancel') as HTMLButtonElement;
+  const formTitle = document.getElementById('form-title') as HTMLElement;
+
+  const showMsg = (t: string, ok = true) => {
+    msg.textContent = t;
+    msg.style.color = ok ? 'var(--color-teal)' : 'var(--color-flame)';
+    msg.hidden = false;
+  };
+  async function post(url: string, body: unknown) {
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    return { ok: res.ok, data: await res.json().catch(() => ({})) };
+  }
+
+  const FIELDS = ['c-name', 'c-person', 'c-email', 'c-phone', 'c-instagram', 'c-city', 'c-notes'];
+  function resetForm() {
+    $('c-id').value = '';
+    FIELDS.forEach((id) => (($(id) as HTMLInputElement).value = ''));
+    ($('c-kind') as unknown as HTMLSelectElement).value = 'veranstalter';
+    formTitle.textContent = 'Neuer Kontakt';
+    cancel.hidden = true;
+    msg.hidden = true;
+  }
+  function fillForm(c: Contact) {
+    $('c-id').value = c.id;
+    $('c-name').value = c.name;
+    ($('c-kind') as unknown as HTMLSelectElement).value = c.kind;
+    $('c-person').value = c.person;
+    $('c-email').value = c.email;
+    $('c-phone').value = c.phone;
+    $('c-instagram').value = c.instagram;
+    $('c-city').value = c.city;
+    ($('c-notes') as unknown as HTMLTextAreaElement).value = c.notes;
+    formTitle.textContent = 'Kontakt bearbeiten';
+    cancel.hidden = false;
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  cancel.addEventListener('click', resetForm);
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!$('c-name').value.trim()) return;
+    const payload: Record<string, unknown> = {
+      id: $('c-id').value || undefined,
+      name: $('c-name').value.trim(),
+      kind: ($('c-kind') as unknown as HTMLSelectElement).value,
+      person: $('c-person').value.trim(),
+      email: $('c-email').value.trim(),
+      phone: $('c-phone').value.trim(),
+      instagram: $('c-instagram').value.trim(),
+      city: $('c-city').value.trim(),
+      notes: ($('c-notes') as unknown as HTMLTextAreaElement).value.trim(),
+    };
+    submit.disabled = true;
+    submit.textContent = 'Speichert …';
+    const { ok, data } = await post('/api/contacts/save', payload);
+    submit.disabled = false;
+    submit.textContent = 'Speichern';
+    if (ok) {
+      showMsg('Gespeichert.');
+      setTimeout(() => location.reload(), 600);
+    } else showMsg(data.error ?? 'Speichern fehlgeschlagen.', false);
+  });
+
+  document.querySelectorAll('[data-contact]').forEach((li) => {
+    const id = (li as HTMLElement).dataset.id!;
+    li.querySelector('[data-edit]')?.addEventListener('click', () => {
+      const c = contacts.find((x) => x.id === id);
+      if (c) fillForm(c);
+    });
+    li.querySelector('[data-del]')?.addEventListener('click', async () => {
+      const name = contacts.find((x) => x.id === id)?.name ?? 'diesen Kontakt';
+      if (!confirm(`„${name}" wirklich löschen?`)) return;
+      const { ok, data } = await post('/api/contacts/delete', { id });
+      if (ok) location.reload();
+      else alert(data.error ?? 'Löschen fehlgeschlagen.');
+    });
+  });
+
+  // Client-side filter across name/person/email/phone/instagram/city/notes.
+  const search = document.getElementById('c-search') as HTMLInputElement;
+  const emptyHint = document.getElementById('c-empty') as HTMLElement;
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    let anyVisible = false;
+    document.querySelectorAll('[data-group]').forEach((group) => {
+      let groupVisible = 0;
+      group.querySelectorAll('[data-contact]').forEach((li) => {
+        const hay = (li as HTMLElement).dataset.search ?? '';
+        const show = !q || hay.includes(q);
+        (li as HTMLElement).hidden = !show;
+        if (show) groupVisible++;
+      });
+      (group as HTMLElement).hidden = groupVisible === 0;
+      const count = group.querySelector('[data-group-count]');
+      if (count) count.textContent = String(groupVisible);
+      if (groupVisible) anyVisible = true;
+    });
+    emptyHint.hidden = anyVisible || !q;
+  });
+</script>

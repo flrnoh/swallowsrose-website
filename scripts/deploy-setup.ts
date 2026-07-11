@@ -10,6 +10,7 @@ import { db, usingPglite } from '../src/lib/db/index.ts';
 import { seedMembers } from './seed-members.ts';
 import { seedTourDates } from './seed-tourdates.ts';
 import { seedSetlistData } from './seed-songs.ts';
+import { seedContacts } from './seed-contacts.ts';
 
 async function main() {
   if (usingPglite) {
@@ -21,6 +22,7 @@ async function main() {
   await seedMembers();
   await seedTourDates();
   await seedSetlistData();
+  await seedContacts();
 }
 
 main()

@@ -277,6 +277,28 @@ buchen. Kern: `src/lib/finance.ts`, APIs `/api/finance/save` + `/api/finance/del
   OAuth-Keys) — bewusst manuelles Buchen, abgleichbar mit dem SumUp-Report.
 - Rein Backend, **nichts davon leakt auf die öffentliche Website**.
 
+### Kontakte (`/backend/kontakte`)
+
+Adressbuch der Band — Veranstalter, Venues, Peer-/Supportbands, Agenturen,
+Technik. **Alle Mitglieder** dürfen bearbeiten. Kern: `src/lib/contacts.ts`,
+APIs `/api/contacts/save` (Upsert) + `/api/contacts/delete` (eingeloggt = erlaubt,
+sonst 403).
+- **Felder** (`contact`-Tabelle): `name` (Pflicht), `kind`
+  (`veranstalter`/`venue`/`band`/`agentur`/`label`/`technik`/`sonstiges`),
+  `person` (Ansprechpartner), `email`, `phone`, `instagram`, `city`, `notes`.
+  Ansicht ist nach `kind` gruppiert; Live-Suche filtert clientseitig über alle
+  Felder.
+- **Seed** (`scripts/seed-contacts.ts`, läuft im Deploy): Adressbuch kommt aus
+  der Env-Var **`CREW_CONTACTS`** (JSON-Array, **nur in Vercel** — dieses Repo ist
+  public, genau wie bei `CREW_MEMBERS`). Idempotent über `source_key`; lokal
+  greift ein harmloser Dev-Fallback (`DEV_CONTACTS` in `src/data/contacts.ts`).
+  Erstbestand stammt aus den Google-Drive-Listen (Veranstalter aus „Tourdates
+  2026" + Peer-Bands aus „Supportband (GER)"); danach im Backend pflegen.
+- **Datenschutz**: enthält personenbezogene Kontaktdaten Dritter → **niemals im
+  Repo** (public!), nur in der Env-Var. Rein intern (invite-only, kein Versand an
+  Externe, **nichts leakt auf die Website**) — dieselbe Nutzung wie zuvor in der
+  Google-Tabelle, kein neuer Auftragsverarbeiter.
+
 ## Arbeiten mit Nicht-Tech-Kollegen (z. B. Dominik)
 
 Wenn der User **kein Git/GitHub kann** — was bei einem Bandmitglied
