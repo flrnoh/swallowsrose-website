@@ -26,6 +26,7 @@ export const CATEGORIES: Record<Kind, { value: string; label: string }[]> = {
     { value: 'unterkunft', label: 'Unterkunft' },
     { value: 'verpflegung', label: 'Verpflegung' },
     { value: 'equipment', label: 'Equipment' },
+    { value: 'produktion', label: 'Produktion / Technik' },
     { value: 'merch-einkauf', label: 'Merch-Einkauf' },
     { value: 'werbung', label: 'Werbung / Promo' },
     { value: 'gebuehren', label: 'Gebühren' },
@@ -97,6 +98,14 @@ export async function createEntry(input: FinanceInput, userId: string) {
   const id = randomUUID();
   await db.insert(schema.financeEntry).values({ id, ...toRow(input), createdBy: userId });
   return id;
+}
+
+/** Bulk insert (used by the paste-import). Caller must validate each input. */
+export async function createEntries(inputs: FinanceInput[], userId: string) {
+  if (inputs.length === 0) return 0;
+  const rows = inputs.map((input) => ({ id: randomUUID(), ...toRow(input), createdBy: userId }));
+  await db.insert(schema.financeEntry).values(rows);
+  return rows.length;
 }
 
 export async function updateEntry(id: string, input: FinanceInput) {
