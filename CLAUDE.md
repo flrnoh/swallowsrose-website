@@ -332,11 +332,20 @@ BBOX müssen zwischen Karte und Outline-Build übereinstimmen).
 **Generativ** (`/backend/tourplaner/generator`, Phase 2): Startpunkt + Umkreis +
 Anzahl Shows (+ Kategorie/„nur mit Mail") → ein **Nearest-Neighbor + 2-opt**-Lauf
 über die Kontakt-Koordinaten stellt die kürzeste fahrbare Route aus Booking-Zielen
-zusammen (Karte + Etappen + Pitch-Mails + „E-Mails kopieren"). **Rein clientseitig**
-(Regler → Live-Neuberechnung, kein Roundtrip); der Server bettet die vorprojizierten
-Kandidaten (Kontakte mit Coords, ~247) als JSON ein. Ehrlicher Haken: ohne
-Festival-Datum liefert er die geografisch besten **Ziele zum Anschreiben** fürs
-Fenster, keine datumsfesten Shows (Zeitraum-Felder aktuell nur fürs Label).
+zusammen (Karte + Etappen + Pitch-Mails). **Rein clientseitig** (Regler →
+Live-Neuberechnung, kein Roundtrip); der Server bettet die vorprojizierten
+Kandidaten (Kontakte mit Coords, ~247) als JSON ein.
+- **Datums-Filter**: bei gesetztem Zeitraum fallen Festivals raus, deren **Monat**
+  nicht ins Fenster passt (Venues/Veranstalter sind nicht saisongebunden → bleiben).
+  Monat kommt aus `src/data/festival-months.json` (`sourceKey→1–12`, einmalig aus
+  „FESTIVALS 2026" abgeleitet, Lücken über die Monats-Trennzeilen gefüllt; Monat ist
+  kein PII → im Repo, nicht in `CREW_CONTACTS`). Server hängt ihn per `sourceKey`
+  an die Kandidaten.
+- **Manuell anpassen**: jeder Stopp hat ✕ (entfernen), „Weitere in der Nähe" bietet
+  die nächstgelegenen Pool-Kandidaten zum Hinzufügen; danach re-2opt. „↻ Neu
+  vorschlagen" setzt auf den Auto-Vorschlag zurück (Regler-Änderung ebenso).
+- **Sammelmail**: `mailto:` mit allen Route-Mails im **BCC** + Pitch-Vorlage
+  (Betreff/Body); plus „E-Mails kopieren".
 - **Vollständig self-contained, kein externer Dienst** (Egress-frei): Kern
   `src/lib/geo.ts` — `geocode(city)`, `haversineKm`, `projectUnit` (DACH-BBox →
   Unit-Space). Koordinaten aus `src/data/geo-cities.json`: normalisierte
