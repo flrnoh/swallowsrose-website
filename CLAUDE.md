@@ -217,6 +217,20 @@ Pipeline-Felder nicht an).
   Tourkalender. Anfragen/Angebote/Absagen bleiben in der Pipeline (kein Leak
   auf die Website, kein Verstopfen des Kalenders).
 
+### Gig-Sheets (`/backend/gig-sheets`)
+
+Show-Tag-Infoblatt pro **bestätigtem** Gig (Load-in, Zeitplan, Anfahrt, Rider) —
+ein optionales Sheet je Event (1:1, `gig_sheet`-Tabelle, unique je `event_id`,
+Cascade-Delete am Event). **Alle Mitglieder** dürfen bearbeiten. Kern:
+`src/lib/gigsheets.ts`, API `/api/gigsheet/save` (eingeloggt = Upsert, sonst 403).
+- **Quelle**: `listSheetGigs()` liefert nur Gigs mit Status `bestaetigt`/`gespielt`
+  (`CONFIRMED_STATUSES`) — Anfragen/Angebote haben (noch) kein Sheet.
+- **Felder** (alle Freitext, in `SHEET_FIELDS`): `loadIn`, `soundcheck`, `doors`,
+  `stageTime`, `setLength`, `address`, `parking`, `accommodation`, `catering`,
+  `backline`, `contactOnSite`, `notes`. Zeitangaben sind bewusst Text
+  („16:00", „ab 17 Uhr", „TBC"), relativ zum Gig-Tag.
+- Rein Backend, **nichts davon leakt auf die öffentliche Website**.
+
 ### Verfügbarkeit (`/backend/verfuegbarkeit`)
 
 Ampel pro anstehendem Termin (`listUpcomingEvents()` = kommende echte Events).
