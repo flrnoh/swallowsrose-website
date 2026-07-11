@@ -31,6 +31,7 @@ export type EventInput = {
   contactName?: string | null;
   contactEmail?: string | null;
   contactPhone?: string | null;
+  contactId?: string | null;
 };
 
 /** Any authenticated member (calendar + pipeline are shared, everyone may edit). */
@@ -65,6 +66,7 @@ function toRow(input: EventInput) {
     contactName: input.contactName?.trim() || null,
     contactEmail: input.contactEmail?.trim() || null,
     contactPhone: input.contactPhone?.trim() || null,
+    contactId: input.contactId?.trim() || null,
   };
 }
 
@@ -130,6 +132,7 @@ export async function updateEvent(id: string, input: Partial<EventInput>) {
   if ('contactName' in input) set.contactName = input.contactName?.trim() || null;
   if ('contactEmail' in input) set.contactEmail = input.contactEmail?.trim() || null;
   if ('contactPhone' in input) set.contactPhone = input.contactPhone?.trim() || null;
+  if ('contactId' in input) set.contactId = input.contactId?.trim() || null;
   await db.update(schema.event).set(set).where(eq(schema.event.id, id));
 }
 

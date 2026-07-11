@@ -216,6 +216,10 @@ Pipeline-Felder nicht an).
   `listCalendarEvents()` speist Kalender + iCal, `listPublicUpcoming()` den
   Tourkalender. Anfragen/Angebote/Absagen bleiben in der Pipeline (kein Leak
   auf die Website, kein Verstopfen des Kalenders).
+- **Kontakt-Verknüpfung** (`event.contactId` → `contact`, `set null` beim Löschen
+  des Kontakts): optionaler Picker im Formular (nach `kind` gruppiert) neben den
+  Freitext-Kontaktfeldern. Der Gig zeigt „↳ <Kontakt>" (→ `/backend/kontakte`),
+  der Kontakt seinerseits seine Gigs. Siehe Kontakte.
 
 ### Gig-Sheets (`/backend/gig-sheets`)
 
@@ -288,16 +292,21 @@ Technik. **Alle Mitglieder** dürfen bearbeiten. Kern: `src/lib/contacts.ts`,
 APIs `/api/contacts/save` (Upsert) + `/api/contacts/delete` (eingeloggt = erlaubt,
 sonst 403).
 - **Felder** (`contact`-Tabelle): `name` (Pflicht), `kind`
-  (`veranstalter`/`venue`/`band`/`agentur`/`label`/`technik`/`sonstiges`),
+  (`veranstalter`/`festival`/`venue`/`band`/`agentur`/`label`/`technik`/`sonstiges`),
   `person` (Ansprechpartner), `email`, `phone`, `instagram`, `city`, `notes`.
   Ansicht ist nach `kind` gruppiert; Live-Suche filtert clientseitig über alle
-  Felder.
+  Felder. `KINDS`/`KIND_LABEL` in `src/lib/contacts.ts` steuern Reihenfolge +
+  Beschriftung.
+- **Gig-Verknüpfung**: jeder Kontakt zeigt seine verknüpften Gigs („Gigs: …" →
+  `/backend/gigs#gig-<id>`); umgekehrt verlinkt ein Gig auf seinen Kontakt
+  (siehe Gig-Pipeline, `event.contactId`).
 - **Seed** (`scripts/seed-contacts.ts`, läuft im Deploy): Adressbuch kommt aus
   der Env-Var **`CREW_CONTACTS`** (JSON-Array, **nur in Vercel** — dieses Repo ist
   public, genau wie bei `CREW_MEMBERS`). Idempotent über `source_key`; lokal
   greift ein harmloser Dev-Fallback (`DEV_CONTACTS` in `src/data/contacts.ts`).
-  Erstbestand stammt aus den Google-Drive-Listen (Veranstalter aus „Tourdates
-  2026" + Peer-Bands aus „Supportband (GER)"); danach im Backend pflegen.
+  Erstbestand aus den Google-Drive-Listen (Veranstalter aus „Tourdates 2026",
+  Peer-Bands aus „Supportband (GER)", ~280 Festivals aus „FESTIVALS 2026" als
+  `kind:'festival'`); danach im Backend pflegen.
 - **Datenschutz**: enthält personenbezogene Kontaktdaten Dritter → **niemals im
   Repo** (public!), nur in der Env-Var. Rein intern (invite-only, kein Versand an
   Externe, **nichts leakt auf die Website**) — dieselbe Nutzung wie zuvor in der

@@ -88,6 +88,9 @@ export const event = pgTable('event', {
   contactName: text('contact_name'),
   contactEmail: text('contact_email'),
   contactPhone: text('contact_phone'),
+  // Optional link into the address book (a booker/venue/festival). Free-text
+  // contact fields above stay for ad-hoc entries; this is the structured link.
+  contactId: text('contact_id').references(() => contact.id, { onDelete: 'set null' }),
   // Deterministic key for idempotent seeding (e.g. legacy tour dates); null for
   // member-created events.
   sourceKey: text('source_key').unique(),

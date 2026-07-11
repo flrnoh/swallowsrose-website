@@ -57,6 +57,13 @@
       "when": 1783765679593,
       "tag": "0007_contacts",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1783768746722,
+      "tag": "0008_gig_contact",
+      "breakpoints": true
     }
   ]
 }
