@@ -313,6 +313,26 @@ sonst 403).
   Externe, **nichts leakt auf die Website**) — dieselbe Nutzung wie zuvor in der
   Google-Tabelle, kein neuer Auftragsverarbeiter.
 
+### Tourplaner (`/backend/tourplaner`) — Phase 1
+
+Bestätigte Gigs (`CONFIRMED_STATUSES`) als Route auf einer **schematischen
+DACH-Karte** (Inline-SVG, keine externen Kartenkacheln), chronologisch, mit
+**Luftlinien-Distanzen** (Haversine) je Etappe + Summe. Read-only Ansicht.
+- **Vollständig self-contained, kein externer Dienst** (Egress-frei): Kern
+  `src/lib/geo.ts` — `geocode(city)`, `haversineKm`, `projectUnit` (DACH-BBox →
+  Unit-Space). Koordinaten aus `src/data/geo-cities.json`: normalisierte
+  Stadt→[lat,lng]-Teilmenge (~225 Orte, 6 KB), **einmalig** aus den öffentlichen
+  GeoNames-Postleitzahl-Dumps (DE/AT/CZ, CC-BY) für unsere Gig-/Kontakt-Städte
+  erzeugt. Nicht gematchte Städte (~18 %, obskure Festival-Weiler/Tippfehler)
+  plotten einfach nicht (Hinweis „N ohne verortbare Stadt").
+- **Normalisierung** (`normCity`, muss synchron zur Bau-Logik von
+  `geo-cities.json` bleiben): lower, ß→ss, Diakritika strippen, „(AT)/(CZ)"
+  entfernen, nur `[a-z0-9]`. Neue Städte → Teilmenge neu erzeugen.
+- **Geplant:** Phase 2 = generativer Tourplaner (Zeitfenster + N Shows + Region →
+  optimierte Kontakt-Route via Nearest-Neighbor/2-opt über die Koordinaten);
+  Phase 3 = Hotel-/Gastro-Kontakt-Kategorien pro Stopp; Enrichment = Festival-
+  Monate aus „FESTIVALS 2026" für saisonales Matching.
+
 ## Arbeiten mit Nicht-Tech-Kollegen (z. B. Dominik)
 
 Wenn der User **kein Git/GitHub kann** — was bei einem Bandmitglied
