@@ -11,6 +11,7 @@ export const prerender = false;
 import Layout from '../../../layouts/Layout.astro';
 import { listContacts, KIND_LABEL } from '../../../lib/contacts';
 import { geocode, projectUnit, MAP_ASPECT } from '../../../lib/geo';
+import outline from '../../../data/dach-outline.json';
 
 const contacts = await listContacts();
 
@@ -103,13 +104,10 @@ const anchors = [
 
     <div class="mt-4 rounded-xl border border-cream/10 bg-ink-soft/40 p-3">
       <svg viewBox={`0 0 ${W} ${H}`} class="mx-auto block h-auto w-full max-w-sm" role="img" aria-label="Generierte Tour-Route">
-        <rect x="0.5" y="0.5" width={W - 1} height={H - 1} rx="12" fill="none" stroke="rgb(255 255 255 / 0.06)" />
-        {[0.25, 0.5, 0.75].map((f) => (
-          <>
-            <line x1={0} y1={f * H} x2={W} y2={f * H} stroke="rgb(255 255 255 / 0.05)" stroke-dasharray="2 9" />
-            <line x1={f * W} y1={0} x2={f * W} y2={H} stroke="rgb(255 255 255 / 0.05)" stroke-dasharray="2 9" />
-          </>
-        ))}
+        <path d={outline.ch} fill="none" stroke="rgb(255 255 255 / 0.07)" stroke-width="1" stroke-linejoin="round" />
+        <path d={outline.at} fill="none" stroke="rgb(255 255 255 / 0.07)" stroke-width="1" stroke-linejoin="round" />
+        <path d={outline.cz} fill="none" stroke="rgb(255 255 255 / 0.07)" stroke-width="1" stroke-linejoin="round" />
+        <path d={outline.de} fill="rgb(255 255 255 / 0.045)" stroke="rgb(255 255 255 / 0.18)" stroke-width="1.2" stroke-linejoin="round" />
         <g id="route-layer"></g>
       </svg>
     </div>

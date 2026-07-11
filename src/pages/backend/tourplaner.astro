@@ -8,6 +8,7 @@ import Layout from '../../layouts/Layout.astro';
 import { listGigs, CONFIRMED_STATUSES } from '../../lib/events';
 import { geocode, haversineKm, projectUnit, MAP_ASPECT, type LatLng } from '../../lib/geo';
 import { bookingUrl, mapsUrl } from '../../lib/hotels';
+import outline from '../../data/dach-outline.json';
 
 const gigs = await listGigs();
 const real = gigs.filter((g) => CONFIRMED_STATUSES.includes(g.status as never));
@@ -80,14 +81,11 @@ const period =
 
           <div class="mt-4 rounded-xl border border-cream/10 bg-ink-soft/40 p-3">
             <svg viewBox={`0 0 ${W} ${H}`} class="mx-auto block h-auto w-full max-w-sm" role="img" aria-label="Karte der Tour-Route">
-              <rect x="0.5" y="0.5" width={W - 1} height={H - 1} rx="12" fill="none" stroke="rgb(255 255 255 / 0.06)" />
-              {[0.25, 0.5, 0.75].map((f) => (
-                <>
-                  <line x1={0} y1={f * H} x2={W} y2={f * H} stroke="rgb(255 255 255 / 0.05)" stroke-dasharray="2 9" />
-                  <line x1={f * W} y1={0} x2={f * W} y2={H} stroke="rgb(255 255 255 / 0.05)" stroke-dasharray="2 9" />
-                </>
-              ))}
-              <path d={routeD} fill="none" stroke="var(--color-flame)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.85" />
+              <path d={outline.ch} fill="none" stroke="rgb(255 255 255 / 0.07)" stroke-width="1" stroke-linejoin="round" />
+              <path d={outline.at} fill="none" stroke="rgb(255 255 255 / 0.07)" stroke-width="1" stroke-linejoin="round" />
+              <path d={outline.cz} fill="none" stroke="rgb(255 255 255 / 0.07)" stroke-width="1" stroke-linejoin="round" />
+              <path d={outline.de} fill="rgb(255 255 255 / 0.045)" stroke="rgb(255 255 255 / 0.18)" stroke-width="1.2" stroke-linejoin="round" />
+              <path d={routeD} fill="none" stroke="var(--color-flame)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9" />
               {pts.map((p, i) => (
                 <g>
                   <circle cx={p.x} cy={p.y} r="8.5" fill="var(--color-flame)" />

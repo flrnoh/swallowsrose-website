@@ -321,9 +321,13 @@ sonst 403).
 ### Tourplaner (`/backend/tourplaner` + `/backend/tourplaner/generator`)
 
 **Vorwärts** (`/backend/tourplaner`): bestätigte Gigs (`CONFIRMED_STATUSES`) als
-Route auf einer **schematischen DACH-Karte** (Inline-SVG, keine externen
-Kartenkacheln), chronologisch, mit **Luftlinien-Distanzen** (Haversine) je Etappe
-+ Summe. Read-only.
+Route auf einer **DACH-Karte** (Inline-SVG, keine externen Kartenkacheln),
+chronologisch, mit **Luftlinien-Distanzen** (Haversine) je Etappe + Summe.
+Read-only. Der Länderumriss (DE gefüllt + AT/CH/CZ als Kontext) liegt gebündelt in
+`src/data/dach-outline.json` — **einmalig** aus Natural-Earth 50m (public domain)
+extrahiert, Douglas-Peucker-vereinfacht und mit **derselben Projektion** wie die
+Punkte zu SVG-Pfaden vorgerechnet (Projektions-Konstanten W=420/H=512/PAD=26 +
+BBOX müssen zwischen Karte und Outline-Build übereinstimmen).
 
 **Generativ** (`/backend/tourplaner/generator`, Phase 2): Startpunkt + Umkreis +
 Anzahl Shows (+ Kategorie/„nur mit Mail") → ein **Nearest-Neighbor + 2-opt**-Lauf
