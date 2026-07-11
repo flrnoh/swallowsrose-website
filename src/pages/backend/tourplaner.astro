@@ -7,6 +7,7 @@ export const prerender = false;
 import Layout from '../../layouts/Layout.astro';
 import { listGigs, CONFIRMED_STATUSES } from '../../lib/events';
 import { geocode, haversineKm, projectUnit, MAP_ASPECT, type LatLng } from '../../lib/geo';
+import { bookingUrl, mapsUrl } from '../../lib/hotels';
 
 const gigs = await listGigs();
 const real = gigs.filter((g) => CONFIRMED_STATUSES.includes(g.status as never));
@@ -114,6 +115,11 @@ const period =
                   <span class="w-16 shrink-0 font-mono text-xs text-cream/40">{fmtDay(s.gig.startAt)}</span>
                   <span class="text-lg">{s.gig.city}</span>
                   <span class="text-sm text-cream-soft">· {s.gig.title}{s.gig.location && s.gig.location !== s.gig.title ? ` · ${s.gig.location}` : ''}</span>
+                  <span class="ml-auto flex shrink-0 items-center gap-3 text-xs">
+                    <span class="text-cream/30">Hotels:</span>
+                    <a href={bookingUrl(s.gig.city!, s.gig.startAt)} target="_blank" rel="noopener noreferrer" class="text-teal transition-colors hover:text-flame">Booking ↗</a>
+                    <a href={mapsUrl(s.gig.city!, s.coord)} target="_blank" rel="noopener noreferrer" class="text-teal transition-colors hover:text-flame">Maps ↗</a>
+                  </span>
                 </div>
               </li>
             ))}
