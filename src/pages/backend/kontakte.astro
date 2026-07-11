@@ -60,6 +60,30 @@ const clientContacts = contacts.map((c) => ({
       class="mt-8 w-full rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame"
     />
 
+    <!-- Kategorie-Filter -->
+    <div id="c-filters" class="mt-3 flex flex-wrap gap-2">
+      <button
+        type="button"
+        data-filter="alle"
+        class="rounded-full border border-flame px-3 py-1.5 text-xs uppercase tracking-[0.15em] text-flame transition-colors"
+        aria-pressed="true"
+      >
+        Alle <span class="text-cream/40">{contacts.length}</span>
+      </button>
+      {
+        groups.map((g) => (
+          <button
+            type="button"
+            data-filter={g.kind}
+            class="rounded-full border border-cream/15 px-3 py-1.5 text-xs uppercase tracking-[0.15em] text-cream-soft transition-colors hover:border-flame hover:text-flame"
+            aria-pressed="false"
+          >
+            {g.label} <span class="text-cream/40">{g.items.length}</span>
+          </button>
+        ))
+      }
+    </div>
+
     <!-- Anlegen / Bearbeiten -->
     <form id="c-form" class="mt-4 rounded-xl border border-cream/10 bg-ink-soft/50 p-5">
       <h2 id="form-title" class="text-2xl">Neuer Kontakt</h2>
@@ -96,7 +120,7 @@ const clientContacts = contacts.map((c) => ({
     <!-- Verzeichnis -->
     <div class="mt-10">
       {contacts.length === 0 && <p class="text-sm text-cream/40">Noch keine Kontakte — leg oben den ersten an.</p>}
-      <p id="c-empty" hidden class="text-sm text-cream/40">Kein Kontakt passt zur Suche.</p>
+      <p id="c-empty" hidden class="text-sm text-cream/40">Kein Kontakt passt zu Filter & Suche.</p>
       {
         groups.map((g) => (
           <div class="mb-6" data-group data-kind={g.kind}>
@@ -249,25 +273,50 @@ const clientContacts = contacts.map((c) => ({
     });
   });
 
-  // Client-side filter across name/person/email/phone/instagram/city/notes.
+  // Client-side filter: category chips × text search (both apply together).
   const search = document.getElementById('c-search') as HTMLInputElement;
   const emptyHint = document.getElementById('c-empty') as HTMLElement;
-  search.addEventListener('input', () => {
+  const chips = Array.from(document.querySelectorAll('#c-filters [data-filter]')) as HTMLButtonElement[];
+  let activeKind = 'alle';
+
+  const ACTIVE = ['border-flame', 'text-flame'];
+  const IDLE = ['border-cream/15', 'text-cream-soft', 'hover:border-flame', 'hover:text-flame'];
+  function paintChips() {
+    for (const chip of chips) {
+      const on = chip.dataset.filter === activeKind;
+      chip.setAttribute('aria-pressed', String(on));
+      chip.classList.remove(...(on ? IDLE : ACTIVE));
+      chip.classList.add(...(on ? ACTIVE : IDLE));
+    }
+  }
+
+  function applyFilters() {
     const q = search.value.trim().toLowerCase();
     let anyVisible = false;
     document.querySelectorAll('[data-group]').forEach((group) => {
+      const g = group as HTMLElement;
+      const kindMatch = activeKind === 'alle' || g.dataset.kind === activeKind;
       let groupVisible = 0;
       group.querySelectorAll('[data-contact]').forEach((li) => {
         const hay = (li as HTMLElement).dataset.search ?? '';
-        const show = !q || hay.includes(q);
+        const show = kindMatch && (!q || hay.includes(q));
         (li as HTMLElement).hidden = !show;
         if (show) groupVisible++;
       });
-      (group as HTMLElement).hidden = groupVisible === 0;
+      g.hidden = groupVisible === 0;
       const count = group.querySelector('[data-group-count]');
       if (count) count.textContent = String(groupVisible);
       if (groupVisible) anyVisible = true;
     });
-    emptyHint.hidden = anyVisible || !q;
-  });
+    emptyHint.hidden = anyVisible || (!q && activeKind === 'alle');
+  }
+
+  search.addEventListener('input', applyFilters);
+  for (const chip of chips) {
+    chip.addEventListener('click', () => {
+      activeKind = chip.dataset.filter ?? 'alle';
+      paintChips();
+      applyFilters();
+    });
+  }
 </script>
