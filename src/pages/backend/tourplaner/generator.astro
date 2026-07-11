@@ -34,16 +34,24 @@ const candidates = contacts
   .map(({ c, co }) => {
     const [ux, uy] = projectUnit(co!);
     const f = c.sourceKey ? FEST[c.sourceKey] : undefined;
+    // Saisongebunden = echtes Festival ODER Name sieht nach Open-Air/Festival aus.
+    // Viele Festivals stecken in der DB als kind:'veranstalter' (Booking-Kontakt) —
+    // ohne Namens-Erkennung würden sie den Saison-Filter umgehen und im Winter
+    // auftauchen. `looksOpenAir` = sicher draußen (nie Nov–Feb).
+    const looksOpenAir = /open ?-?air|openair/i.test(c.name);
+    const looksFestival = looksOpenAir || /festival|\bfest\b|\brock (?:am|im|un(?:ter|d)|gegen)\b|umsonst.*drau/i.test(c.name);
+    const seasonal = c.kind === 'festival' || looksFestival;
     return {
       name: c.name,
       city: c.city ?? '',
       kind: c.kind,
       email: c.email ?? '',
-      // Festival-Wissen für Datums-Filter + Anzeige; null = kein/unbekanntes Festival.
+      // Festival-Wissen für Datums-Filter + Anzeige. month=null → Termin unbekannt.
       month: f ? f.month : null,
-      outdoor: f ? f.outdoor : null,
+      outdoor: f ? f.outdoor : looksOpenAir ? true : null,
       verified: f ? f.verified : false,
       window: f?.window ?? '',
+      seasonal,
       lat: co![0],
       lng: co![1],
       ux: +ux.toFixed(4),
@@ -99,7 +107,7 @@ const anchors = [
         <label class="flex items-center gap-2"><input id="t-vera" type="checkbox" checked class="accent-flame" /> Veranstalter</label>
         <label class="flex items-center gap-2"><input id="t-mail" type="checkbox" checked class="accent-flame" /> nur mit E-Mail</label>
       </div>
-      <p class="mt-3 text-xs leading-relaxed text-cream/30">Festival-Badges: ☀ Open-Air / ⌂ Halle · <span class="text-teal">✓ verlässlich</span> = Termin geprüft · <span class="text-flame/70">~ geschätzt</span> = Monat unbestätigt, vor dem Anschreiben kurz prüfen. Der Zeitraum filtert Festivals nach Saison (Venues/Veranstalter bleiben ganzjährig).</p>
+      <p class="mt-3 text-xs leading-relaxed text-cream/30">Festival-Badges: ☀ Open-Air / ⌂ Halle · <span class="text-teal">✓ verlässlich</span> = Termin geprüft · <span class="text-flame/70">~ geschätzt</span> = Termin unbestätigt, vor dem Anschreiben prüfen. Der Zeitraum filtert alle Festivals/Open-Airs nach Saison (auch als „Veranstalter" abgelegte) — ein reines Winterfenster zeigt keine Sommer-Festivals mehr; nur echte Venues/Booker bleiben ganzjährig.</p>
     </div>
 
     <div class="mt-4 grid grid-cols-3 gap-3">
@@ -149,7 +157,7 @@ const anchors = [
 </Layout>
 
 <script>
-  type Cand = { name: string; city: string; kind: string; email: string; month: number | null; outdoor: boolean | null; verified: boolean; window: string; lat: number; lng: number; ux: number; uy: number };
+  type Cand = { name: string; city: string; kind: string; email: string; month: number | null; outdoor: boolean | null; verified: boolean; window: string; seasonal: boolean; lat: number; lng: number; ux: number; uy: number };
   type Anchor = { label: string; lat: number; lng: number; ux: number; uy: number };
   const CAND: Cand[] = JSON.parse(document.getElementById('cand-data')!.textContent || '[]');
   const ANCHORS: Anchor[] = JSON.parse(document.getElementById('anchor-data')!.textContent || '[]');
@@ -158,15 +166,16 @@ const anchors = [
 
   const $ = (id: string) => document.getElementById(id)!;
   const esc = (s: string) => s.replace(/[&<>"]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]!));
-  // Festival-Badge: Open-Air/Halle + Fenster + verlässlich/geschätzt. Nur für
-  // Festivals mit bekannten Daten; „~ geschätzt" warnt vor ungeprüften Monaten.
+  // Festival-Badge: Open-Air/Halle + Fenster + verlässlich/geschätzt. Für alle
+  // saisongebundenen Kontakte; „~ geschätzt"/„Termin unbekannt" warnt vor
+  // ungeprüften Daten (viele „Veranstalter" sind in Wahrheit Sommer-Festivals).
   const festBadge = (c: Cand) => {
-    if (c.kind !== 'festival' || c.outdoor === null) return '';
-    const venue = c.outdoor ? '☀ Open-Air' : '⌂ Halle';
-    const win = c.window ? ` · ${esc(c.window)}` : '';
+    if (!c.seasonal) return '';
+    const venue = c.outdoor === true ? '☀ Open-Air' : c.outdoor === false ? '⌂ Halle' : '☀ Festival';
+    const win = c.window ? ` · ${esc(c.window)}` : c.month == null ? ' · Termin unbekannt' : '';
     const trust = c.verified
       ? '<span class="text-teal" title="Termin gegen die Festivalseite verifiziert">✓ verlässlich</span>'
-      : '<span class="text-flame/70" title="Monat nur geschätzt — vor dem Anschreiben kurz prüfen">~ geschätzt</span>';
+      : '<span class="text-flame/70" title="Termin nur geschätzt — vor dem Anschreiben prüfen">~ geschätzt</span>';
     return `<span class="inline-flex items-center gap-1.5 rounded-full border border-cream/10 bg-ink/40 px-2.5 py-0.5 text-xs text-cream-soft">${venue}${win} · ${trust}</span>`;
   };
   const sx = (ux: number) => PAD + ux * (W - 2 * PAD);
@@ -199,6 +208,13 @@ const anchors = [
   }
   // Festival-Monat im gewählten Fenster? (Jahreswechsel wird berücksichtigt.)
   const inMonths = (m: number, fm: number, tm: number) => (fm <= tm ? m >= fm && m <= tm : m >= fm || m <= tm);
+  // Berührt das Fenster überhaupt die Open-Air-Saison (Apr–Okt)? Für saisonale
+  // Kontakte OHNE bekannten Monat: ein reines Winterfenster (z.B. Nov–Dez) darf
+  // kein Sommer-Festival zeigen — genau der Bug „Open Air im Dezember".
+  const windowTouchesSeason = (fm: number, tm: number) => {
+    for (let m = 4; m <= 10; m++) if (inMonths(m, fm, tm)) return true;
+    return false;
+  };
 
   // Pitch-Mail. Alle Belege sind echt (Bio/Label/Tour-Historie). Die Zahlen-Zeile
   // füllt die Band EINMAL in PROOF — leer = Zeile fällt sauber weg (kein
@@ -249,8 +265,13 @@ const anchors = [
       if (!kinds.includes(c.kind)) return false;
       if (mailOnly && !c.email) return false;
       if (hav(ANCHOR, c) > radius) return false;
-      // Datumsfenster gilt nur für Festivals (Venues sind nicht saisongebunden).
-      if (df && c.kind === 'festival') { if (c.month == null) return false; if (!inMonths(c.month, df.fm, df.tm)) return false; }
+      // Datumsfenster gilt für alle saisongebundenen Kontakte (Festivals + als
+      // „Veranstalter" abgelegte Open-Airs), nicht für ganzjährige Venues/Booker.
+      if (df && c.seasonal) {
+        if (c.month != null) return inMonths(c.month, df.fm, df.tm);
+        // Monat unbekannt → nur zeigen, wenn das Fenster die Saison berührt.
+        return windowTouchesSeason(df.fm, df.tm);
+      }
       return true;
     });
     $('m-pool').textContent = String(POOL.length);
