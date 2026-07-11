@@ -233,6 +233,11 @@ Cascade-Delete am Event). **Alle Mitglieder** dürfen bearbeiten. Kern:
   `stageTime`, `setLength`, `address`, `parking`, `accommodation`, `catering`,
   `backline`, `contactOnSite`, `notes`. Zeitangaben sind bewusst Text
   („16:00", „ab 17 Uhr", „TBC"), relativ zum Gig-Tag.
+- **Hotel-Deeplinks** (`src/lib/hotels.ts`): im aufgeklappten Sheet oben ein
+  „Hotels in <Stadt>"-Balken mit **Booking.com** (vorausgefüllt: Stadt + Check-in
+  = Gig-Tag) und **Google Maps** (auf Venue-Koordinaten zentriert). Nur Links, die
+  im Browser öffnen — keine API, kein Egress, nichts gespeichert (spart das
+  manuelle booking.com-Durchforsten). Gleiche Links auch auf den Tourplaner-Stopps.
 - Rein Backend, **nichts davon leakt auf die öffentliche Website**.
 
 ### Verfügbarkeit (`/backend/verfuegbarkeit`)

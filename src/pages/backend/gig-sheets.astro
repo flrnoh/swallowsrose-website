@@ -5,6 +5,8 @@ export const prerender = false;
 
 import Layout from '../../layouts/Layout.astro';
 import { listSheetGigs, getSheetsForEvents, SHEET_FIELDS } from '../../lib/gigsheets';
+import { bookingUrl, mapsUrl } from '../../lib/hotels';
+import { geocode } from '../../lib/geo';
 
 const user = Astro.locals.user!;
 const gigs = await listSheetGigs();
@@ -112,6 +114,13 @@ const inputBase =
                 </button>
 
                 <div data-body hidden class="border-t border-cream/10 px-5 py-5">
+                  {gig.city && (
+                    <div class="mb-5 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-ink/60 px-4 py-3 text-sm">
+                      <span class="text-xs uppercase tracking-wider text-cream/40">Hotels in {gig.city}</span>
+                      <a href={bookingUrl(gig.city, gig.startAt)} target="_blank" rel="noopener noreferrer" class="text-teal transition-colors hover:text-flame">Booking.com ↗</a>
+                      <a href={mapsUrl(gig.city, geocode(gig.city))} target="_blank" rel="noopener noreferrer" class="text-teal transition-colors hover:text-flame">Google Maps ↗</a>
+                    </div>
+                  )}
                   <form data-form class="flex flex-col gap-5">
                     {groups.map((grp) => (
                       <fieldset class="grid grid-cols-1 gap-3 sm:grid-cols-2">
