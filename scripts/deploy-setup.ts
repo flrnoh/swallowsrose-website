@@ -9,6 +9,7 @@ import { migrate as migrateNeon } from 'drizzle-orm/neon-http/migrator';
 import { db, usingPglite } from '../src/lib/db/index.ts';
 import { seedMembers } from './seed-members.ts';
 import { seedTourDates } from './seed-tourdates.ts';
+import { seedSetlistData } from './seed-songs.ts';
 
 async function main() {
   if (usingPglite) {
@@ -19,6 +20,7 @@ async function main() {
   console.log('[deploy-setup] ✓ Neon-Schema aktuell.');
   await seedMembers();
   await seedTourDates();
+  await seedSetlistData();
 }
 
 main()

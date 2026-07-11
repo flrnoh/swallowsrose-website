@@ -36,6 +36,13 @@
       "when": 1783756072949,
       "tag": "0004_gig_sheets",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783762820711,
+      "tag": "0005_setlists",
+      "breakpoints": true
     }
   ]
 }
