@@ -294,9 +294,10 @@ sonst 403).
 - **Felder** (`contact`-Tabelle): `name` (Pflicht), `kind`
   (`veranstalter`/`festival`/`venue`/`band`/`agentur`/`label`/`technik`/`sonstiges`),
   `person` (Ansprechpartner), `email`, `phone`, `instagram`, `city`, `notes`.
-  Ansicht ist nach `kind` gruppiert; Live-Suche filtert clientseitig über alle
-  Felder. `KINDS`/`KIND_LABEL` in `src/lib/contacts.ts` steuern Reihenfolge +
-  Beschriftung.
+  Ansicht ist nach `kind` gruppiert; **Kategorie-Filter-Chips** (Alle + je Kind
+  mit Anzahl) und Live-Suche filtern clientseitig und kombiniert (Schnittmenge)
+  über alle Felder. `KINDS`/`KIND_LABEL` in `src/lib/contacts.ts` steuern
+  Reihenfolge + Beschriftung.
 - **Gig-Verknüpfung**: jeder Kontakt zeigt seine verknüpften Gigs („Gigs: …" →
   `/backend/gigs#gig-<id>`); umgekehrt verlinkt ein Gig auf seinen Kontakt
   (siehe Gig-Pipeline, `event.contactId`).
