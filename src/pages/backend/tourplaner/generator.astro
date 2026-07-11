@@ -12,9 +12,14 @@ import Layout from '../../../layouts/Layout.astro';
 import { listContacts, KIND_LABEL } from '../../../lib/contacts';
 import { geocode, projectUnit, MAP_ASPECT } from '../../../lib/geo';
 import outline from '../../../data/dach-outline.json';
-import festivalMonths from '../../../data/festival-months.json';
+import festivals from '../../../data/festivals.json';
 
-const MONTHS = festivalMonths as Record<string, number>;
+// Festival-Wissensbasis: sourceKey → { month, outdoor, verified, window? }.
+// `verified` = Monat + Indoor/Outdoor gegen die Festivalseite geprüft; sonst
+// heuristisch (dem Crew klar als „~ geschätzt" gekennzeichnet). Siehe
+// scripts/build-festivals.mjs.
+type Fest = { month: number; outdoor: boolean; verified: boolean; window?: string };
+const FEST = festivals as Record<string, Fest>;
 
 const contacts = await listContacts();
 
@@ -28,13 +33,17 @@ const candidates = contacts
   .filter((x) => x.co)
   .map(({ c, co }) => {
     const [ux, uy] = projectUnit(co!);
+    const f = c.sourceKey ? FEST[c.sourceKey] : undefined;
     return {
       name: c.name,
       city: c.city ?? '',
       kind: c.kind,
       email: c.email ?? '',
-      // Festival-Monat (1–12) für den Datums-Filter; null = kein/kein Festival.
-      month: c.sourceKey ? (MONTHS[c.sourceKey] ?? null) : null,
+      // Festival-Wissen für Datums-Filter + Anzeige; null = kein/unbekanntes Festival.
+      month: f ? f.month : null,
+      outdoor: f ? f.outdoor : null,
+      verified: f ? f.verified : false,
+      window: f?.window ?? '',
       lat: co![0],
       lng: co![1],
       ux: +ux.toFixed(4),
@@ -90,6 +99,7 @@ const anchors = [
         <label class="flex items-center gap-2"><input id="t-vera" type="checkbox" checked class="accent-flame" /> Veranstalter</label>
         <label class="flex items-center gap-2"><input id="t-mail" type="checkbox" checked class="accent-flame" /> nur mit E-Mail</label>
       </div>
+      <p class="mt-3 text-xs leading-relaxed text-cream/30">Festival-Badges: ☀ Open-Air / ⌂ Halle · <span class="text-teal">✓ verlässlich</span> = Termin geprüft · <span class="text-flame/70">~ geschätzt</span> = Monat unbestätigt, vor dem Anschreiben kurz prüfen. Der Zeitraum filtert Festivals nach Saison (Venues/Veranstalter bleiben ganzjährig).</p>
     </div>
 
     <div class="mt-4 grid grid-cols-3 gap-3">
@@ -139,7 +149,7 @@ const anchors = [
 </Layout>
 
 <script>
-  type Cand = { name: string; city: string; kind: string; email: string; month: number | null; lat: number; lng: number; ux: number; uy: number };
+  type Cand = { name: string; city: string; kind: string; email: string; month: number | null; outdoor: boolean | null; verified: boolean; window: string; lat: number; lng: number; ux: number; uy: number };
   type Anchor = { label: string; lat: number; lng: number; ux: number; uy: number };
   const CAND: Cand[] = JSON.parse(document.getElementById('cand-data')!.textContent || '[]');
   const ANCHORS: Anchor[] = JSON.parse(document.getElementById('anchor-data')!.textContent || '[]');
@@ -148,6 +158,17 @@ const anchors = [
 
   const $ = (id: string) => document.getElementById(id)!;
   const esc = (s: string) => s.replace(/[&<>"]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]!));
+  // Festival-Badge: Open-Air/Halle + Fenster + verlässlich/geschätzt. Nur für
+  // Festivals mit bekannten Daten; „~ geschätzt" warnt vor ungeprüften Monaten.
+  const festBadge = (c: Cand) => {
+    if (c.kind !== 'festival' || c.outdoor === null) return '';
+    const venue = c.outdoor ? '☀ Open-Air' : '⌂ Halle';
+    const win = c.window ? ` · ${esc(c.window)}` : '';
+    const trust = c.verified
+      ? '<span class="text-teal" title="Termin gegen die Festivalseite verifiziert">✓ verlässlich</span>'
+      : '<span class="text-flame/70" title="Monat nur geschätzt — vor dem Anschreiben kurz prüfen">~ geschätzt</span>';
+    return `<span class="inline-flex items-center gap-1.5 rounded-full border border-cream/10 bg-ink/40 px-2.5 py-0.5 text-xs text-cream-soft">${venue}${win} · ${trust}</span>`;
+  };
   const sx = (ux: number) => PAD + ux * (W - 2 * PAD);
   const sy = (uy: number) => PAD + uy * (H - 2 * PAD);
   const hav = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
@@ -179,15 +200,35 @@ const anchors = [
   // Festival-Monat im gewählten Fenster? (Jahreswechsel wird berücksichtigt.)
   const inMonths = (m: number, fm: number, tm: number) => (fm <= tm ? m >= fm && m <= tm : m >= fm || m <= tm);
 
-  const SUBJECT = "Booking-Anfrage — Swallow's Rose";
-  const BODY = `Hallo,
-
-wir sind Swallow's Rose, Melodic Punk aus Niederbayern, und planen eine Tour. Euer Festival bzw. eure Location würde gut in unsere Route passen — hättet ihr Interesse an einem gemeinsamen Gig?
-
-Mehr zu uns: https://swallowsrose.com
-
-Viele Grüße
-Swallow's Rose`;
+  // Pitch-Mail. Alle Belege sind echt (Bio/Label/Tour-Historie). Die Zahlen-Zeile
+  // füllt die Band EINMAL in PROOF — leer = Zeile fällt sauber weg (kein
+  // Platzhalter landet im Versand). Betreff/Text ziehen Fenster + Region live rein.
+  const PROOF = ''; // TODO Florian: echte Belege, z.B. "Über 15.000 monatliche Hörer auf Spotify · ~200–400 Besucher pro Show."
+  const fmtLong = (d: string) => new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: 'long' });
+  const buildSubject = () => "Swallow's Rose — Booking-Anfrage (Melodic Punk · Uncle M Music)";
+  function buildBody() {
+    const from = ($('t-from') as HTMLInputElement).value, to = ($('t-to') as HTMLInputElement).value;
+    const region = /^Zuhause/.test(ANCHOR.label) ? 'Süddeutschland' : ANCHOR.label;
+    const fenster = from && to ? `von ${fmtLong(from)} bis ${fmtLong(to)} ` : '';
+    return [
+      'Hallo,',
+      '',
+      'wir sind Swallow’s Rose — Melodic Punk aus Niederbayern, aktuell mit dem neuen Album „The Beginning“ (Uncle M Music, zuvor SBÄM Records) unterwegs. Auf der Bühne standen wir u. a. schon mit Dropkick Murphys, Flogging Molly und Less Than Jake.',
+      ...(PROOF ? ['', PROOF] : []),
+      '',
+      `Für eine kompakte Tour ${fenster}rund um ${region} suchen wir noch Slots — euer Festival bzw. eure Location würde perfekt in die Route passen. Wir machen euch das Ja leicht:`,
+      '• Headliner oder Support — wie es bei euch am besten reinpasst.',
+      '• Faire, verhandelbare Gage; verlässlich, pünktlich, professionelles Auftreten.',
+      '• Eigene Anlage/Backline möglich, wenn’s hilft.',
+      '',
+      'Hört rein & seht uns live: https://swallowsrose.com (Musik, Live-Videos, Pressekit).',
+      '',
+      'Sagt kurz Bescheid, ob’s passt — wir richten die Route nach euren Terminen.',
+      '',
+      'Punk’s not dead,',
+      'Swallow’s Rose',
+    ].join('\n');
+  }
 
   let ANCHOR: Anchor = ANCHORS[0];
   let POOL: Cand[] = [];
@@ -255,6 +296,7 @@ Swallow's Rose`;
             <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-flame font-display text-sm text-ink">${i + 1}</span>
             <span class="text-lg">${esc(c.name)}</span>
             <span class="text-sm text-cream-soft">· ${esc(c.city)} · ${esc(KL[c.kind] || c.kind)}</span>
+            ${festBadge(c)}
             ${c.email ? `<a href="mailto:${esc(c.email)}" class="text-sm text-teal transition-colors hover:text-flame">${esc(c.email)}</a>` : ''}
             <button data-remove="${i}" aria-label="Stopp entfernen" class="ml-auto shrink-0 rounded-lg border border-cream/15 px-2.5 py-1 text-xs text-cream-soft transition-colors hover:border-flame hover:text-flame">✕</button>
           </div>
@@ -277,7 +319,7 @@ Swallow's Rose`;
 
     const mails = current.map((c) => c.email).filter(Boolean);
     const sammel = $('sammel-mail') as HTMLAnchorElement;
-    sammel.href = mails.length ? `mailto:?bcc=${mails.join(',')}&subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(BODY)}` : '#';
+    sammel.href = mails.length ? `mailto:?bcc=${mails.join(',')}&subject=${encodeURIComponent(buildSubject())}&body=${encodeURIComponent(buildBody())}` : '#';
     sammel.style.opacity = mails.length ? '1' : '0.4';
     sammel.style.pointerEvents = mails.length ? 'auto' : 'none';
 
