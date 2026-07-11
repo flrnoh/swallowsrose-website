@@ -313,11 +313,21 @@ sonst 403).
   Externe, **nichts leakt auf die Website**) — dieselbe Nutzung wie zuvor in der
   Google-Tabelle, kein neuer Auftragsverarbeiter.
 
-### Tourplaner (`/backend/tourplaner`) — Phase 1
+### Tourplaner (`/backend/tourplaner` + `/backend/tourplaner/generator`)
 
-Bestätigte Gigs (`CONFIRMED_STATUSES`) als Route auf einer **schematischen
-DACH-Karte** (Inline-SVG, keine externen Kartenkacheln), chronologisch, mit
-**Luftlinien-Distanzen** (Haversine) je Etappe + Summe. Read-only Ansicht.
+**Vorwärts** (`/backend/tourplaner`): bestätigte Gigs (`CONFIRMED_STATUSES`) als
+Route auf einer **schematischen DACH-Karte** (Inline-SVG, keine externen
+Kartenkacheln), chronologisch, mit **Luftlinien-Distanzen** (Haversine) je Etappe
++ Summe. Read-only.
+
+**Generativ** (`/backend/tourplaner/generator`, Phase 2): Startpunkt + Umkreis +
+Anzahl Shows (+ Kategorie/„nur mit Mail") → ein **Nearest-Neighbor + 2-opt**-Lauf
+über die Kontakt-Koordinaten stellt die kürzeste fahrbare Route aus Booking-Zielen
+zusammen (Karte + Etappen + Pitch-Mails + „E-Mails kopieren"). **Rein clientseitig**
+(Regler → Live-Neuberechnung, kein Roundtrip); der Server bettet die vorprojizierten
+Kandidaten (Kontakte mit Coords, ~247) als JSON ein. Ehrlicher Haken: ohne
+Festival-Datum liefert er die geografisch besten **Ziele zum Anschreiben** fürs
+Fenster, keine datumsfesten Shows (Zeitraum-Felder aktuell nur fürs Label).
 - **Vollständig self-contained, kein externer Dienst** (Egress-frei): Kern
   `src/lib/geo.ts` — `geocode(city)`, `haversineKm`, `projectUnit` (DACH-BBox →
   Unit-Space). Koordinaten aus `src/data/geo-cities.json`: normalisierte
@@ -328,10 +338,9 @@ DACH-Karte** (Inline-SVG, keine externen Kartenkacheln), chronologisch, mit
 - **Normalisierung** (`normCity`, muss synchron zur Bau-Logik von
   `geo-cities.json` bleiben): lower, ß→ss, Diakritika strippen, „(AT)/(CZ)"
   entfernen, nur `[a-z0-9]`. Neue Städte → Teilmenge neu erzeugen.
-- **Geplant:** Phase 2 = generativer Tourplaner (Zeitfenster + N Shows + Region →
-  optimierte Kontakt-Route via Nearest-Neighbor/2-opt über die Koordinaten);
-  Phase 3 = Hotel-/Gastro-Kontakt-Kategorien pro Stopp; Enrichment = Festival-
-  Monate aus „FESTIVALS 2026" für saisonales Matching.
+- **Geplant:** Phase 3 = Hotel-/Gastro-Kontakt-Kategorien pro Stopp; Enrichment =
+  Festival-Monate aus „FESTIVALS 2026" für saisonales Matching (Datums-Filter im
+  Generator).
 
 ## Arbeiten mit Nicht-Tech-Kollegen (z. B. Dominik)
 
