@@ -1,0 +1,245 @@
+---
+// Tour planner (Phase 2) — generative. Block a window, pick N shows + a home
+// base + radius, and a nearest-neighbour + 2-opt pass over the contact
+// coordinates proposes a compact, drivable route of booking targets to pitch.
+// Fully client-side (snappy re-generate on every control change); egress-free.
+//
+// Honest limit: we have no per-festival dates, so this proposes the
+// geographically best *targets to contact* for the window, not dated shows.
+export const prerender = false;
+
+import Layout from '../../../layouts/Layout.astro';
+import { listContacts, KIND_LABEL } from '../../../lib/contacts';
+import { geocode, projectUnit, MAP_ASPECT } from '../../../lib/geo';
+
+const contacts = await listContacts();
+
+const W = 420;
+const H = Math.round(W / MAP_ASPECT);
+const PAD = 26;
+
+// Candidates: contacts with coordinates (festivals + promoters), pre-projected.
+const candidates = contacts
+  .map((c) => ({ c, co: geocode(c.city) }))
+  .filter((x) => x.co)
+  .map(({ c, co }) => {
+    const [ux, uy] = projectUnit(co!);
+    return {
+      name: c.name,
+      city: c.city ?? '',
+      kind: c.kind,
+      email: c.email ?? '',
+      lat: co![0],
+      lng: co![1],
+      ux: +ux.toFixed(4),
+      uy: +uy.toFixed(4),
+    };
+  });
+
+// Anchor options: a fixed home base + every candidate city.
+const HOME = { label: 'Zuhause (Bayerischer Wald)', lat: 49.0165, lng: 13.2371 };
+const [hux, huy] = projectUnit([HOME.lat, HOME.lng]);
+const cityMap = new Map<string, { label: string; lat: number; lng: number; ux: number; uy: number }>();
+for (const c of candidates) {
+  if (!cityMap.has(c.city)) cityMap.set(c.city, { label: c.city, lat: c.lat, lng: c.lng, ux: c.ux, uy: c.uy });
+}
+const anchors = [
+  { ...HOME, ux: +hux.toFixed(4), uy: +huy.toFixed(4) },
+  ...[...cityMap.values()].sort((a, b) => a.label.localeCompare(b.label, 'de')),
+];
+---
+
+<Layout title="Tour generieren — Swallow's Rose Crew" chrome={false}>
+  <section class="mx-auto min-h-[100dvh] max-w-3xl px-6 py-16">
+    <a href="/backend/tourplaner" class="mb-8 inline-block text-xs uppercase tracking-[0.2em] text-cream-soft transition-colors hover:text-flame">
+      ← Tourplaner
+    </a>
+
+    <p class="mb-2 text-xs uppercase tracking-[0.3em] text-flame">Generator</p>
+    <h1 class="text-5xl">Tour generieren</h1>
+    <p class="mt-3 text-sm text-cream-soft">Startpunkt, Umkreis und Anzahl Shows wählen — die passenden Kontakte stellen sich zur kürzesten fahrbaren Route zusammen.</p>
+
+    <div class="mt-8 rounded-xl border border-cream/10 bg-ink-soft/50 p-5">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-xs uppercase tracking-wider text-cream/40 sm:col-span-2">Startpunkt
+          <select id="t-anchor" class="rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none focus:border-flame">
+            {anchors.map((a, i) => <option value={i}>{a.label}</option>)}
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-xs uppercase tracking-wider text-cream/40">Umkreis · <span id="t-radius-out" class="text-flame normal-case">250 km</span>
+          <input id="t-radius" type="range" min="50" max="600" step="25" value="250" class="mt-2 accent-flame" />
+        </label>
+        <label class="flex flex-col gap-1 text-xs uppercase tracking-wider text-cream/40">Anzahl Shows · <span id="t-n-out" class="text-flame normal-case">5</span>
+          <input id="t-n" type="range" min="2" max="14" step="1" value="5" class="mt-2 accent-flame" />
+        </label>
+        <label class="flex flex-col gap-1 text-xs uppercase tracking-wider text-cream/40">Zeitraum von
+          <input id="t-from" type="date" class="rounded-lg border border-cream/15 bg-ink px-4 py-2.5 text-cream outline-none focus:border-flame" />
+        </label>
+        <label class="flex flex-col gap-1 text-xs uppercase tracking-wider text-cream/40">bis
+          <input id="t-to" type="date" class="rounded-lg border border-cream/15 bg-ink px-4 py-2.5 text-cream outline-none focus:border-flame" />
+        </label>
+      </div>
+      <div class="mt-4 flex flex-wrap items-center gap-4 text-sm text-cream-soft">
+        <label class="flex items-center gap-2"><input id="t-fest" type="checkbox" checked class="accent-flame" /> Festivals</label>
+        <label class="flex items-center gap-2"><input id="t-vera" type="checkbox" checked class="accent-flame" /> Veranstalter</label>
+        <label class="flex items-center gap-2"><input id="t-mail" type="checkbox" checked class="accent-flame" /> nur mit E-Mail</label>
+      </div>
+    </div>
+
+    <div class="mt-4 grid grid-cols-3 gap-3">
+      <div class="rounded-xl bg-ink-soft/60 p-4">
+        <div class="text-xs uppercase tracking-wider text-cream/40">Shows</div>
+        <div id="m-stops" class="mt-1 text-3xl">–</div>
+      </div>
+      <div class="rounded-xl bg-ink-soft/60 p-4">
+        <div class="text-xs uppercase tracking-wider text-cream/40">Luftlinie</div>
+        <div id="m-km" class="mt-1 text-3xl">–</div>
+      </div>
+      <div class="rounded-xl bg-ink-soft/60 p-4">
+        <div class="text-xs uppercase tracking-wider text-cream/40">Kandidaten</div>
+        <div id="m-pool" class="mt-1 text-3xl">–</div>
+      </div>
+    </div>
+
+    <div class="mt-4 rounded-xl border border-cream/10 bg-ink-soft/40 p-3">
+      <svg viewBox={`0 0 ${W} ${H}`} class="mx-auto block h-auto w-full max-w-sm" role="img" aria-label="Generierte Tour-Route">
+        <rect x="0.5" y="0.5" width={W - 1} height={H - 1} rx="12" fill="none" stroke="rgb(255 255 255 / 0.06)" />
+        {[0.25, 0.5, 0.75].map((f) => (
+          <>
+            <line x1={0} y1={f * H} x2={W} y2={f * H} stroke="rgb(255 255 255 / 0.05)" stroke-dasharray="2 9" />
+            <line x1={f * W} y1={0} x2={f * W} y2={H} stroke="rgb(255 255 255 / 0.05)" stroke-dasharray="2 9" />
+          </>
+        ))}
+        <g id="route-layer"></g>
+      </svg>
+    </div>
+
+    <div class="mt-6 flex items-center justify-between">
+      <p id="plan-hint" class="text-xs text-cream/30"></p>
+      <button id="copy-mails" class="rounded-lg border border-cream/15 px-3 py-1.5 text-xs uppercase tracking-[0.15em] text-cream-soft transition-colors hover:border-flame hover:text-flame">E-Mails kopieren</button>
+    </div>
+
+    <ol id="plan-list" class="mt-3 flex flex-col gap-2"></ol>
+  </section>
+
+  <script id="cand-data" type="application/json" set:html={JSON.stringify(candidates)}></script>
+  <script id="anchor-data" type="application/json" set:html={JSON.stringify(anchors)}></script>
+  <script id="dims-data" type="application/json" set:html={JSON.stringify({ W, H, PAD })}></script>
+  <script id="kindlabel-data" type="application/json" set:html={JSON.stringify(KIND_LABEL)}></script>
+</Layout>
+
+<script>
+  type Cand = { name: string; city: string; kind: string; email: string; lat: number; lng: number; ux: number; uy: number };
+  type Anchor = { label: string; lat: number; lng: number; ux: number; uy: number };
+  const CAND: Cand[] = JSON.parse(document.getElementById('cand-data')!.textContent || '[]');
+  const ANCHORS: Anchor[] = JSON.parse(document.getElementById('anchor-data')!.textContent || '[]');
+  const { W, H, PAD } = JSON.parse(document.getElementById('dims-data')!.textContent || '{}');
+  const KL: Record<string, string> = JSON.parse(document.getElementById('kindlabel-data')!.textContent || '{}');
+
+  const $ = (id: string) => document.getElementById(id)!;
+  const sx = (ux: number) => PAD + ux * (W - 2 * PAD);
+  const sy = (uy: number) => PAD + uy * (H - 2 * PAD);
+  const hav = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
+    const R = 6371, r = (x: number) => (x * Math.PI) / 180;
+    const dLat = r(b.lat - a.lat), dLng = r(b.lng - a.lng);
+    const s = Math.sin(dLat / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(s));
+  };
+  const routeLen = (anchor: Anchor, r: Cand[]) => {
+    if (!r.length) return 0;
+    let d = hav(anchor, r[0]);
+    for (let i = 1; i < r.length; i++) d += hav(r[i - 1], r[i]);
+    return d;
+  };
+  function twoOpt(anchor: Anchor, route: Cand[]) {
+    if (route.length < 3) return route;
+    let best = route.slice(), bl = routeLen(anchor, best), improved = true;
+    while (improved) {
+      improved = false;
+      for (let i = 0; i < best.length - 1; i++)
+        for (let k = i + 1; k < best.length; k++) {
+          const cand = best.slice(0, i).concat(best.slice(i, k + 1).reverse(), best.slice(k + 1));
+          const cl = routeLen(anchor, cand);
+          if (cl < bl - 1e-9) { best = cand; bl = cl; improved = true; }
+        }
+    }
+    return best;
+  }
+
+  let current: Cand[] = [];
+
+  function generate() {
+    const anchor = ANCHORS[+($('t-anchor') as HTMLSelectElement).value];
+    const radius = +($('t-radius') as HTMLInputElement).value;
+    const n = +($('t-n') as HTMLInputElement).value;
+    const kinds: string[] = [];
+    if (($('t-fest') as HTMLInputElement).checked) kinds.push('festival');
+    if (($('t-vera') as HTMLInputElement).checked) kinds.push('veranstalter');
+    const mailOnly = ($('t-mail') as HTMLInputElement).checked;
+    $('t-radius-out').textContent = `${radius} km`;
+    $('t-n-out').textContent = String(n);
+
+    const pool = CAND.filter((c) => kinds.includes(c.kind) && (!mailOnly || c.email) && hav(anchor, c) <= radius);
+    $('m-pool').textContent = String(pool.length);
+
+    const chosen: Cand[] = [];
+    const rest = pool.slice();
+    let cur: { lat: number; lng: number } = anchor;
+    while (chosen.length < n && rest.length) {
+      let bi = 0, bd = Infinity;
+      for (let i = 0; i < rest.length; i++) { const d = hav(cur, rest[i]); if (d < bd) { bd = d; bi = i; } }
+      chosen.push(rest[bi]); cur = rest[bi]; rest.splice(bi, 1);
+    }
+    current = twoOpt(anchor, chosen);
+
+    const legs = current.map((c, i) => Math.round(hav(i === 0 ? anchor : current[i - 1], c)));
+    const total = legs.reduce((a, b) => a + b, 0);
+    $('m-stops').textContent = String(current.length);
+    $('m-km').textContent = current.length ? `${total.toLocaleString('de-DE')} km` : '–';
+
+    const proj = (c: { ux: number; uy: number }): [number, number] => [sx(c.ux), sy(c.uy)];
+    let svg = '';
+    if (current.length) {
+      const pathPts = [anchor, ...current].map((c, i) => { const [x, y] = proj(c); return `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`; }).join(' ');
+      svg += `<path d="${pathPts}" fill="none" stroke="var(--color-flame)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.85"/>`;
+      const [hx, hy] = proj(anchor);
+      svg += `<circle cx="${hx}" cy="${hy}" r="6" fill="none" stroke="var(--color-cream-soft)" stroke-width="2"/>`;
+      current.forEach((c, i) => {
+        const [x, y] = proj(c);
+        svg += `<circle cx="${x}" cy="${y}" r="8.5" fill="var(--color-flame)"/><text x="${x}" y="${y + 3.5}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--color-ink)">${i + 1}</text>`;
+      });
+    }
+    $('route-layer').innerHTML = svg;
+
+    const esc = (s: string) => s.replace(/[&<>"]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]!));
+    $('plan-list').innerHTML = current.length
+      ? current.map((c, i) => `
+        <li>
+          ${i > 0 ? `<div class="flex items-center gap-2 py-1 pl-5 text-xs text-cream/30"><span class="text-flame/60">↓</span> ${legs[i].toLocaleString('de-DE')} km</div>` : ''}
+          <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-xl border border-cream/10 bg-ink-soft/50 p-4">
+            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-flame font-display text-sm text-ink">${i + 1}</span>
+            <span class="text-lg">${esc(c.name)}</span>
+            <span class="text-sm text-cream-soft">· ${esc(c.city)} · ${esc(KL[c.kind] || c.kind)}</span>
+            ${c.email ? `<a href="mailto:${esc(c.email)}" class="w-full text-sm text-teal transition-colors hover:text-flame sm:w-auto">${esc(c.email)}</a>` : ''}
+          </div>
+        </li>`).join('')
+      : `<li class="text-sm text-cream/40">Keine Kandidaten im Umkreis — Radius vergrößern oder Filter lockern.</li>`;
+
+    const from = ($('t-from') as HTMLInputElement).value, to = ($('t-to') as HTMLInputElement).value;
+    const fmt = (d: string) => new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
+    $('plan-hint').textContent = current.length
+      ? (from && to ? `${current.length} Shows · ${fmt(from)}–${fmt(to)} · ab ${anchor.label}` : `${current.length} Shows · ab ${anchor.label}`)
+      : '';
+  }
+
+  ['t-anchor', 't-radius', 't-n', 't-fest', 't-vera', 't-mail', 't-from', 't-to'].forEach((id) =>
+    $(id).addEventListener('input', generate),
+  );
+  $('copy-mails').addEventListener('click', async () => {
+    const mails = current.map((c) => c.email).filter(Boolean).join(', ');
+    if (!mails) return;
+    try { await navigator.clipboard.writeText(mails); const b = $('copy-mails'); const t = b.textContent; b.textContent = 'Kopiert ✓'; setTimeout(() => (b.textContent = t), 1200); } catch {}
+  });
+
+  generate();
+</script>
