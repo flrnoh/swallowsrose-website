@@ -272,6 +272,10 @@ buchen. Kern: `src/lib/finance.ts`, APIs `/api/finance/save` + `/api/finance/del
   „Einnahmen nach Zahlungsart" (SumUp-Abgleich).
 - **Kassenstand** = Einnahmen − Ausgaben; **Gagen-Split** = Kassenstand ÷
   Mitgliederzahl (`getMemberCount()`), live auf der Seite.
+- **Bulk-Import** („aus Tabelle einfügen"): Tab-getrennte Zeilen (Datum · Art ·
+  Betrag · Bemerkung) einfügen → Vorschau (Kategorie wird aus „Art" erraten) →
+  `/api/finance/import` (Batch, validiert atomar). So kommen echte Zahlen in die
+  **private DB**, ohne sie ins (öffentliche) Repo zu committen.
 - Optional an einen Gig gekoppelt (`eventId`, `set null` beim Löschen des Gigs).
 - **Keine SumUp-API-Anbindung** (Egress-Policy blockt externe Dienste; keine
   OAuth-Keys) — bewusst manuelles Buchen, abgleichbar mit dem SumUp-Report.
