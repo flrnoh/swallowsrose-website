@@ -336,8 +336,12 @@ zusammen (Karte + Etappen + Pitch-Mails). **Rein clientseitig** (Regler →
 Live-Neuberechnung, kein Roundtrip); der Server bettet die vorprojizierten
 Kandidaten (Kontakte mit Coords, ~247) als JSON ein.
 - **Datums-Filter + Festival-Wissensbasis**: bei gesetztem Zeitraum fallen Festivals
-  raus, deren **Monat** nicht ins Fenster passt (Venues/Veranstalter sind nicht
-  saisongebunden → bleiben). Quelle ist jetzt `src/data/festivals.json`
+  raus, deren **Monat** nicht ins Fenster passt. **Saisongebunden** ist nicht nur
+  `kind:'festival'`, sondern auch als `veranstalter` abgelegte Open-Airs — der
+  Generator erkennt sie am Namen (`open air`/`festival`/`rock am …`) und filtert sie
+  mit; hat so ein Kontakt keinen Monat, wird er in einem reinen Winterfenster (Nov–Feb,
+  „berührt Saison Apr–Okt nicht") ausgeblendet (fixt „Open Air im Dezember"). Nur
+  echte Venues/Booker/Agenturen bleiben ganzjährig. Quelle ist `src/data/festivals.json`
   (`sourceKey → { month, outdoor, verified, window? }`), gebaut von
   `scripts/build-festivals.mjs` (kein PII → im Repo). `outdoor` trennt Open-Air von
   Halle, `verified` unterscheidet **gegen die Festivalseite geprüfte** Einträge
