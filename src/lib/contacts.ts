@@ -66,6 +66,14 @@ export async function createContact(input: ContactInput, userId: string) {
   await db.insert(schema.contact).values({ id: randomUUID(), ...toRow(input), createdBy: userId });
 }
 
+/** Bulk insert (used by the paste-import). Caller must validate each input. */
+export async function createContacts(inputs: ContactInput[], userId: string) {
+  if (inputs.length === 0) return 0;
+  const rows = inputs.map((input) => ({ id: randomUUID(), ...toRow(input), createdBy: userId }));
+  await db.insert(schema.contact).values(rows);
+  return rows.length;
+}
+
 /** Partial update — only fields present in the payload are touched. */
 export async function updateContact(id: string, input: Partial<ContactInput>) {
   const set: Record<string, unknown> = { updatedAt: new Date() };
