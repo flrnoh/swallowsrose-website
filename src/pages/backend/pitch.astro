@@ -1,0 +1,220 @@
+---
+// Sammelmail / Pitch — bereitet pro Booking-Agentur eine personalisierte
+// Pitch-Mail vor (Booker-Name + betreute Bands eingesetzt). Rein clientseitig:
+// die Seite verschickt NICHTS, sie öffnet nur mailto: bzw. kopiert den Text.
+// Quelle sind die Kontakte mit kind='agentur' aus dem Adressbuch.
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+import { listContacts } from '../../lib/contacts';
+
+// Bands aus der Notiz ziehen ("Bookt: X, Y — <Flags>" → "X, Y").
+function bandsFromNotes(notes: string | null): string {
+  if (!notes) return '';
+  let s = notes.trim();
+  const m = s.match(/^Bookt:\s*(.*)$/i);
+  if (m) s = m[1];
+  return s.split(' — ')[0].trim();
+}
+
+const agencies = (await listContacts())
+  .filter((c) => c.kind === 'agentur' && c.email)
+  .map((c) => ({
+    id: c.id,
+    name: c.name,
+    person: c.person ?? '',
+    email: c.email ?? '',
+    bands: bandsFromNotes(c.notes),
+    city: c.city ?? '',
+  }));
+
+// Standard-Betreff + -Text. Belege (Zahlen) trägt die Band in „Belege" ein —
+// leer = die {{Belege}}-Zeile fällt sauber weg. Platzhalter werden pro Agentur
+// ersetzt: {{Booker}}, {{Agentur}}, {{Bands}}.
+const DEFAULT_SUBJECT = "Swallow's Rose — Booking-Anfrage (Melodic Punk · Uncle M Music)";
+const DEFAULT_BODY = `Hi {{Booker}},
+
+wir sind Swallow's Rose — Melodic Punk aus Niederbayern, aktuell mit dem Album „The Beginning" (Uncle M Music, zuvor SBÄM Records) unterwegs. Auf der Bühne standen wir u. a. schon mit Dropkick Murphys, Flogging Molly und Less Than Jake.
+
+Wir haben gesehen, dass ihr bei {{Agentur}} u. a. {{Bands}} betreut — genau unsere Ecke, deshalb melden wir uns direkt bei euch.
+
+{{Belege}}
+Für [Zeitraum anpassen] suchen wir noch Slots — als Support oder Headliner, faire Gage-Basis, eigene Anlage, unkompliziert. Hättet ihr Interesse, uns auf den Schirm zu nehmen?
+
+Anspielen: [Spotify-/Video-Link einsetzen]
+Mehr: swallowsrose.com
+
+Danke & viele Grüße
+[Name], Swallow's Rose`;
+---
+
+<Layout title="Sammelmail / Pitch — Swallow's Rose Crew" chrome={false}>
+  <section class="mx-auto min-h-[100dvh] max-w-3xl px-6 py-16">
+    <a href="/backend/kontakte" class="mb-8 inline-block text-xs uppercase tracking-[0.2em] text-cream-soft transition-colors hover:text-flame">
+      ← Kontakte
+    </a>
+
+    <p class="mb-2 text-xs uppercase tracking-[0.3em] text-flame">Booking</p>
+    <h1 class="text-5xl">Sammelmail / Pitch</h1>
+    <p class="mt-3 text-sm text-cream-soft">
+      Personalisierte Anfrage pro Agentur — Booker-Name und betreute Bands werden automatisch eingesetzt.
+      Die Seite verschickt nichts: „Mail öffnen" legt den fertigen Entwurf in deinem Mailprogramm an, du drückst auf Senden.
+    </p>
+
+    {agencies.length === 0 && (
+      <p class="mt-8 text-sm text-cream/40">
+        Noch keine Agenturen im Adressbuch. Leg welche unter <a href="/backend/kontakte" class="text-teal hover:text-flame">Kontakte</a> an (Kategorie „Agentur").
+      </p>
+    )}
+
+    {agencies.length > 0 && (
+      <>
+        <!-- Vorlage -->
+        <div class="mt-8 rounded-xl border border-cream/10 bg-ink-soft/50 p-5">
+          <h2 class="text-2xl">Vorlage</h2>
+          <p class="mt-1 text-xs text-cream/50">
+            Platzhalter: <code class="text-cream-soft">{'{{Booker}}'}</code>, <code class="text-cream-soft">{'{{Agentur}}'}</code>,
+            <code class="text-cream-soft">{'{{Bands}}'}</code>. Die eckigen <span class="text-cream-soft">[…]</span>-Stellen einmal ausfüllen.
+          </p>
+
+          <label class="mt-4 block text-xs uppercase tracking-[0.15em] text-cream/50">Betreff</label>
+          <input id="pitch-subject" value={DEFAULT_SUBJECT}
+            class="mt-1 w-full rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none focus:border-flame" />
+
+          <label class="mt-4 block text-xs uppercase tracking-[0.15em] text-cream/50">Belege (optional — leer = Zeile entfällt)</label>
+          <input id="pitch-proof" placeholder="z. B. Über 15.000 monatliche Hörer auf Spotify · ~200–400 Besucher pro Show."
+            class="mt-1 w-full rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame" />
+
+          <label class="mt-4 block text-xs uppercase tracking-[0.15em] text-cream/50">Text</label>
+          <textarea id="pitch-body" rows="16"
+            class="mt-1 w-full rounded-lg border border-cream/15 bg-ink px-4 py-3 font-mono text-xs leading-relaxed text-cream outline-none focus:border-flame">{DEFAULT_BODY}</textarea>
+
+          <p class="mt-4 text-xs uppercase tracking-[0.15em] text-cream/50">Vorschau (erste ausgewählte Agentur)</p>
+          <pre id="pitch-preview" class="mt-1 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg border border-cream/10 bg-ink px-4 py-3 text-xs text-cream-soft"></pre>
+        </div>
+
+        <!-- Empfänger -->
+        <div class="mt-8">
+          <div class="flex flex-wrap items-center gap-3">
+            <h2 class="text-2xl">Agenturen</h2>
+            <span id="pitch-count" class="text-sm text-cream/40"></span>
+            <div class="ml-auto flex flex-wrap gap-2">
+              <button id="pitch-all" type="button" class="rounded-lg border border-cream/15 px-3 py-1.5 text-xs uppercase tracking-[0.15em] text-cream-soft transition-colors hover:border-flame hover:text-flame">Alle</button>
+              <button id="pitch-none" type="button" class="rounded-lg border border-cream/15 px-3 py-1.5 text-xs uppercase tracking-[0.15em] text-cream-soft transition-colors hover:border-flame hover:text-flame">Keine</button>
+              <button id="pitch-copymails" type="button" class="rounded-lg border border-cream/15 px-3 py-1.5 text-xs uppercase tracking-[0.15em] text-cream-soft transition-colors hover:border-flame hover:text-flame">E-Mails kopieren</button>
+            </div>
+          </div>
+
+          <ul class="mt-4 flex flex-col gap-2">
+            {agencies.map((c) => (
+              <li data-row data-id={c.id}
+                class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-cream/10 bg-ink-soft/50 p-4">
+                <input type="checkbox" data-check checked
+                  class="h-4 w-4 shrink-0 accent-flame" />
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-x-2">
+                    <span class="text-lg">{c.name}</span>
+                    {c.person && <span class="text-sm text-cream-soft">· {c.person}</span>}
+                  </div>
+                  <a href={`mailto:${c.email}`} class="text-sm text-teal transition-colors hover:text-flame">{c.email}</a>
+                  {c.bands && <p class="mt-0.5 text-xs text-cream/40 truncate">{c.bands}</p>}
+                </div>
+                <div class="flex shrink-0 items-center gap-2">
+                  <button data-copy type="button" class="rounded-lg border border-cream/15 px-3 py-1.5 text-xs uppercase tracking-[0.15em] text-cream-soft transition-colors hover:border-flame hover:text-flame">Text kopieren</button>
+                  <button data-open type="button" class="rounded-lg bg-flame px-3 py-1.5 text-xs uppercase tracking-[0.15em] text-ink transition-colors hover:bg-flame-soft">Mail öffnen ↗</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </>
+    )}
+  </section>
+
+  <script id="pitch-data" type="application/json" set:html={JSON.stringify(agencies)}></script>
+</Layout>
+
+<script>
+  type Agency = { id: string; name: string; person: string; email: string; bands: string; city: string };
+  const agencies: Agency[] = JSON.parse(document.getElementById('pitch-data')?.textContent || '[]');
+  if (agencies.length) {
+    const subjectEl = document.getElementById('pitch-subject') as HTMLInputElement;
+    const proofEl = document.getElementById('pitch-proof') as HTMLInputElement;
+    const bodyEl = document.getElementById('pitch-body') as HTMLTextAreaElement;
+    const previewEl = document.getElementById('pitch-preview') as HTMLElement;
+    const countEl = document.getElementById('pitch-count') as HTMLElement;
+    const rows = [...document.querySelectorAll('[data-row]')] as HTMLElement[];
+
+    // Belege-Zeile ({{Belege}}) einsetzen oder ganz entfernen; dann Platzhalter füllen.
+    function fill(tpl: string, c: Agency): string {
+      const proof = proofEl.value.trim();
+      const withProof = tpl
+        .split('\n')
+        .flatMap((l) => (l.trim() === '{{Belege}}' ? (proof ? [proof, ''] : []) : [l]))
+        .join('\n');
+      return withProof
+        .split('{{Booker}}').join(c.person || 'ihr')
+        .split('{{Agentur}}').join(c.name)
+        .split('{{Bands}}').join(c.bands || 'eure Acts');
+    }
+
+    function checkboxOf(id: string): HTMLInputElement {
+      return rows.find((r) => r.dataset.id === id)!.querySelector('[data-check]') as HTMLInputElement;
+    }
+    const selected = () => agencies.filter((c) => checkboxOf(c.id).checked);
+
+    function updatePreview() {
+      const first = selected()[0] ?? agencies[0];
+      previewEl.textContent = first
+        ? `Betreff: ${fill(subjectEl.value, first)}\n\n${fill(bodyEl.value, first)}`
+        : '(keine Agentur ausgewählt)';
+      countEl.textContent = `${selected().length} von ${agencies.length} ausgewählt`;
+    }
+
+    function mailtoFor(c: Agency): string {
+      const subject = encodeURIComponent(fill(subjectEl.value, c));
+      const body = encodeURIComponent(fill(bodyEl.value, c));
+      return `mailto:${c.email}?subject=${subject}&body=${body}`;
+    }
+
+    async function copyText(text: string, btn: HTMLElement) {
+      try {
+        await navigator.clipboard.writeText(text);
+        const old = btn.textContent;
+        btn.textContent = 'Kopiert ✓';
+        setTimeout(() => (btn.textContent = old), 1200);
+      } catch {
+        /* clipboard blocked — ignore */
+      }
+    }
+
+    for (const row of rows) {
+      const c = agencies.find((a) => a.id === row.dataset.id)!;
+      row.querySelector('[data-open]')?.addEventListener('click', () => {
+        window.location.href = mailtoFor(c);
+      });
+      row.querySelector('[data-copy]')?.addEventListener('click', (e) => {
+        copyText(fill(bodyEl.value, c), e.currentTarget as HTMLElement);
+      });
+      row.querySelector('[data-check]')?.addEventListener('change', updatePreview);
+    }
+
+    document.getElementById('pitch-all')?.addEventListener('click', () => {
+      rows.forEach((r) => ((r.querySelector('[data-check]') as HTMLInputElement).checked = true));
+      updatePreview();
+    });
+    document.getElementById('pitch-none')?.addEventListener('click', () => {
+      rows.forEach((r) => ((r.querySelector('[data-check]') as HTMLInputElement).checked = false));
+      updatePreview();
+    });
+    document.getElementById('pitch-copymails')?.addEventListener('click', (e) => {
+      const mails = selected().map((c) => c.email).join(', ');
+      if (mails) copyText(mails, e.currentTarget as HTMLElement);
+    });
+
+    subjectEl.addEventListener('input', updatePreview);
+    proofEl.addEventListener('input', updatePreview);
+    bodyEl.addEventListener('input', updatePreview);
+    updatePreview();
+  }
+</script>
