@@ -119,6 +119,17 @@ const modules: { title: string; desc: string }[] = [];
       <p class="mt-2 text-sm text-cream-soft">Adressbuch: Veranstalter, Venues, Bands, Agenturen & Technik</p>
     </a>
 
+    <a
+      href="/backend/pitch"
+      class="mt-4 block rounded-xl border border-flame/40 bg-flame/10 p-5 transition-colors hover:border-flame"
+    >
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl">Sammelmail / Pitch</h2>
+        <span class="text-xl text-flame">→</span>
+      </div>
+      <p class="mt-2 text-sm text-cream-soft">Personalisierte Booking-Anfragen an die Agenturen — Name & Bands automatisch eingesetzt</p>
+    </a>
+
     {
       user.role === 'bandleader' && (
         <a
