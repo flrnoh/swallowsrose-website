@@ -117,6 +117,54 @@ const clientContacts = contacts.map((c) => ({
       </div>
     </form>
 
+    <!-- Sammel-Import (aus Tabelle / Liste einfügen) -->
+    <div class="mt-4 rounded-xl border border-cream/10 bg-ink-soft/40">
+      <button type="button" id="imp-toggle" class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left">
+        <span class="text-lg">Mehrere auf einmal — aus Tabelle einfügen</span>
+        <span id="imp-caret" class="text-cream/40 transition-transform">▾</span>
+      </button>
+      <div id="imp-body" hidden class="border-t border-cream/10 px-5 py-5">
+        <p class="text-xs text-cream/50">
+          Zeilen aus Excel/Sheets/einer Liste kopieren und hier einfügen — Spalten <b>Tab-getrennt</b>:
+          <span class="text-cream-soft">Name · Ansprechpartner · E-Mail · Telefon · Ort · Notizen</span>.
+          Nur <b>Name</b> ist Pflicht; leere Spalten einfach weglassen. Alle Zeilen bekommen die hier gewählte Kategorie.
+        </p>
+        <div class="mt-3 flex flex-wrap items-center gap-3">
+          <label for="imp-kind" class="text-xs uppercase tracking-[0.15em] text-cream/50">Kategorie</label>
+          <select id="imp-kind" class="rounded-lg border border-cream/15 bg-ink px-4 py-2 text-cream outline-none focus:border-flame">
+            {KINDS.map((k) => <option value={k} selected={k === 'agentur'}>{KIND_LABEL[k]}</option>)}
+          </select>
+        </div>
+        <textarea id="imp-text" rows="7"
+          placeholder={"Kingstar Music\tNico Behr\tnb@kingstar-music.com\t\t\tBookt: Rogers, Le Fly …"}
+          class="mt-3 w-full rounded-lg border border-cream/15 bg-ink px-4 py-3 font-mono text-xs text-cream outline-none placeholder:text-cream/30 focus:border-flame"></textarea>
+        <div class="mt-3 flex flex-wrap items-center gap-4">
+          <button type="button" id="imp-preview"
+            class="rounded-lg border border-cream/15 px-4 py-2 text-sm uppercase tracking-[0.15em] text-cream-soft transition-colors hover:border-flame hover:text-flame">
+            Vorschau
+          </button>
+          <button type="button" id="imp-submit" hidden
+            class="rounded-lg bg-flame px-5 py-2.5 font-display text-base uppercase tracking-wide text-ink transition-colors hover:bg-flame-soft disabled:opacity-50">
+            Übernehmen
+          </button>
+          <p id="imp-msg" role="status" class="text-sm text-teal" hidden></p>
+        </div>
+        <div id="imp-preview-wrap" hidden class="mt-4 overflow-x-auto">
+          <table class="w-full border-collapse text-sm">
+            <thead>
+              <tr class="text-left text-[10px] uppercase tracking-wider text-cream/40">
+                <th class="border-b border-cream/10 py-1 pr-3">Name</th>
+                <th class="border-b border-cream/10 py-1 pr-3">Ansprechpartner</th>
+                <th class="border-b border-cream/10 py-1 pr-3">E-Mail</th>
+                <th class="border-b border-cream/10 py-1">Notiz</th>
+              </tr>
+            </thead>
+            <tbody id="imp-preview-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- Verzeichnis -->
     <div class="mt-10">
       {contacts.length === 0 && <p class="text-sm text-cream/40">Noch keine Kontakte — leg oben den ersten an.</p>}
@@ -319,4 +367,89 @@ const clientContacts = contacts.map((c) => ({
       applyFilters();
     });
   }
+
+  // ── Sammel-Import (aus Tabelle einfügen) ──
+  type ImpRow = { name: string; person: string; email: string; phone: string; city: string; notes: string; error: string };
+  function parseContactRows(text: string): ImpRow[] {
+    return text
+      .split('\n')
+      .map((l) => l.replace(/\r$/, ''))
+      .filter((l) => l.trim())
+      .filter((l, i) => !(i === 0 && /^\s*name\b/i.test(l))) // skip a header row
+      .map((line) => {
+        let parts = line.split('\t');
+        if (parts.length < 2) parts = line.split(';');
+        const [name = '', person = '', email = '', phone = '', city = '', ...rest] = parts.map((c) => c.trim());
+        const notes = rest.join(' ').trim();
+        return { name, person, email, phone, city, notes, error: name ? '' : 'Name fehlt' };
+      });
+  }
+
+  const impToggle = document.getElementById('imp-toggle') as HTMLButtonElement;
+  const impBody = document.getElementById('imp-body') as HTMLElement;
+  const impCaret = document.getElementById('imp-caret') as HTMLElement;
+  const impText = document.getElementById('imp-text') as HTMLTextAreaElement;
+  const impKind = document.getElementById('imp-kind') as HTMLSelectElement;
+  const impPreviewBtn = document.getElementById('imp-preview') as HTMLButtonElement;
+  const impSubmit = document.getElementById('imp-submit') as HTMLButtonElement;
+  const impMsg = document.getElementById('imp-msg') as HTMLElement;
+  const impWrap = document.getElementById('imp-preview-wrap') as HTMLElement;
+  const impPreviewBody = document.getElementById('imp-preview-body') as HTMLElement;
+
+  impToggle.addEventListener('click', () => {
+    const open = impBody.hidden;
+    impBody.hidden = !open;
+    impCaret.style.transform = open ? 'rotate(180deg)' : '';
+  });
+
+  let impValid: ImpRow[] = [];
+  function renderContactPreview() {
+    const rows = parseContactRows(impText.value);
+    impValid = rows.filter((r) => !r.error);
+    impPreviewBody.innerHTML = '';
+    for (const r of rows) {
+      const tr = document.createElement('tr');
+      tr.className = r.error ? 'text-flame' : 'text-cream-soft';
+      const cells = [
+        r.error ? `${r.name || '—'} — Fehler: ${r.error}` : r.name,
+        r.person || '—',
+        r.email || '—',
+        r.notes || '—',
+      ];
+      tr.innerHTML =
+        '<td class="border-b border-cream/5 py-1 pr-3"></td>' +
+        '<td class="border-b border-cream/5 py-1 pr-3 whitespace-nowrap"></td>' +
+        '<td class="border-b border-cream/5 py-1 pr-3 whitespace-nowrap"></td>' +
+        '<td class="border-b border-cream/5 py-1"></td>';
+      for (let i = 0; i < 4; i++) (tr.children[i] as HTMLElement).textContent = cells[i];
+      impPreviewBody.appendChild(tr);
+    }
+    impWrap.hidden = rows.length === 0;
+    const bad = rows.length - impValid.length;
+    impMsg.textContent = `${impValid.length} gültig${bad ? `, ${bad} ohne Name (werden übersprungen)` : ''}.`;
+    impMsg.style.color = 'var(--color-teal)';
+    impMsg.hidden = rows.length === 0;
+    impSubmit.hidden = impValid.length === 0;
+    impSubmit.textContent = `${impValid.length} übernehmen`;
+  }
+  impPreviewBtn.addEventListener('click', renderContactPreview);
+
+  impSubmit.addEventListener('click', async () => {
+    if (impValid.length === 0) return;
+    const kind = impKind.value;
+    const payload = impValid.map((r) => ({
+      name: r.name, kind, person: r.person, email: r.email, phone: r.phone, city: r.city, notes: r.notes,
+    }));
+    impSubmit.disabled = true;
+    impSubmit.textContent = 'Importiert …';
+    const { ok, data } = await post('/api/contacts/import', { contacts: payload });
+    impSubmit.disabled = false;
+    if (ok) {
+      impMsg.textContent = `${data.count} Kontakte importiert.`;
+      setTimeout(() => location.reload(), 700);
+    } else {
+      impMsg.textContent = data.error ?? 'Import fehlgeschlagen.';
+      impMsg.style.color = 'var(--color-flame)';
+    }
+  });
 </script>
