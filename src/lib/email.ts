@@ -9,7 +9,7 @@ const SMTP_HOST = process.env.BREVO_SMTP_HOST;
 const SMTP_USER = process.env.BREVO_SMTP_USER;
 const SMTP_PASS = process.env.BREVO_SMTP_PASS;
 // Absender fest auf die eigene Domain — Fremd-Domains unmöglich (KaR-Lektion).
-const MAIL_FROM = process.env.MAIL_FROM ?? "Swallow's Rose <crew@swallowsrose.com>";
+const MAIL_FROM = process.env.MAIL_FROM ?? "Swallow's Rose <info@swallowsrose.com>";
 
 let transporter: Transporter | undefined;
 

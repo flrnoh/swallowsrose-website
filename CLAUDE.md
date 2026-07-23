@@ -188,8 +188,8 @@ in der DB). Lokal ohne `CREW_MEMBERS` greift ein harmloser Dev-Fallback.
 
 **Prod-Env (Vercel):** `DATABASE_URL` (Neon-Integration), `BETTER_AUTH_SECRET`,
 `BETTER_AUTH_URL=https://swallowsrose.com`, `BREVO_SMTP_HOST/USER/PASS`,
-`MAIL_FROM` (in Brevo verifizierter Absender), `CREW_MEMBERS`. Vorlage:
-`.env.example`.
+`MAIL_FROM` (in Brevo verifizierter Absender), `CREW_MEMBERS`, `CREW_CONTACTS`,
+`INVOICE_SETTINGS` (Rechnungs-Absenderdaten). Vorlage: `.env.example`.
 
 **Schema ändern:** `src/lib/db/schema.ts` → `npm run db:generate`
 (neue SQL-Migration) → `npm run db:setup`.
@@ -288,6 +288,31 @@ buchen. Kern: `src/lib/finance.ts`, APIs `/api/finance/save` + `/api/finance/del
 - Optional an einen Gig gekoppelt (`eventId`, `set null` beim Löschen des Gigs).
 - **Keine SumUp-API-Anbindung** (Egress-Policy blockt externe Dienste; keine
   OAuth-Keys) — bewusst manuelles Buchen, abgleichbar mit dem SumUp-Report.
+- Rein Backend, **nichts davon leakt auf die öffentliche Website**.
+
+### Rechnungen (`/backend/finanzen` → Abschnitt „Rechnungen")
+
+Eigenes Rechnungs-Tool — die Band schreibt ihre Gig-/Merch-Rechnungen selbst,
+statt der SumUp-App (SumUps Gratis-Tarif deckelt bei 4 Rechnungen/Monat, die
+API ist reine Zahlungs-API, und unser Backend ist ohnehin egress-frei). Kern:
+`src/lib/invoices.ts`, APIs `/api/invoice/{save,status,book,delete}` (eingeloggt =
+erlaubt, sonst 403). **Alle Mitglieder** dürfen Rechnungen schreiben.
+- **Tabellen** `invoice` + `invoice_item`: Empfänger wird auf die Rechnung
+  **gesnapshottet** (spätere Kontakt-Änderungen schreiben Geschichte nicht um),
+  optionaler Live-Link `contactId` + `eventId` (Gig). Beträge in Cent, Positionen
+  = Menge × Einzelpreis (exakt). Nummer **fortlaufend & eindeutig** pro Jahr
+  (`2026-001`, Pflichtangabe).
+- **USt umschaltbar** je Rechnung (`taxMode`): `kleinunternehmer` (§19 UStG,
+  keine USt + Hinweis) oder `regel` (USt ausgewiesen, 19 %/7 %). Default kommt aus
+  den Absender-Einstellungen — **Steuermodell ist mit Korbinian zu klären.**
+- **PDF**: druckfertige A4-Ansicht `/backend/rechnungen/[id]` (helles Dokument,
+  `window.print()` → als PDF speichern). Kein externer Dienst, egress-frei.
+- **„Als Einnahme buchen"**: legt aus einer Rechnung eine Einnahme im Kassenbuch
+  an (`bookInvoiceAsIncome`, idempotent über `financeEntryId`), Status → „Bezahlt".
+- **Absenderdaten** (Bandanschrift, Steuernummer/USt-IdNr., IBAN, USt-Default)
+  stehen in der Env-Var **`INVOICE_SETTINGS`** (JSON, **nur in Vercel** — dieses
+  Repo ist public, keine Steuernummer/IBAN im Code). Fehlt sie, zeigt das PDF
+  Platzhalter und die Seite warnt. Vorlage: `.env.example`.
 - Rein Backend, **nichts davon leakt auf die öffentliche Website**.
 
 ### Kontakte (`/backend/kontakte`)

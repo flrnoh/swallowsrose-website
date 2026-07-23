@@ -9,12 +9,21 @@ import {
   listEntries, summarize, getMemberCount, fmtEuro,
   KIND_LABEL, CATEGORIES, METHODS, categoryLabel, methodLabel,
 } from '../../lib/finance';
+import {
+  listInvoices, getInvoiceSettings, STATUS_LABEL as INV_STATUS_LABEL,
+  TAX_MODES, TAX_MODE_LABEL,
+} from '../../lib/invoices';
+import { listContacts } from '../../lib/contacts';
 import { listGigs, CONFIRMED_STATUSES } from '../../lib/events';
 
 const user = Astro.locals.user!;
 const entries = await listEntries();
 const memberCount = await getMemberCount();
 const sum = summarize(entries, memberCount);
+
+const invoices = await listInvoices();
+const invSettings = getInvoiceSettings();
+const contacts = await listContacts();
 
 const gigs = (await listGigs())
   .filter((g) => CONFIRMED_STATUSES.includes(g.status as any))
@@ -46,6 +55,50 @@ const clientEntries = entries.map((e) => ({
 
 // Today, for the date input default.
 const today = dateInput(new Date());
+
+// Invoices prepared for the client (list rendering + edit prefill).
+const clientInvoices = invoices.map((inv) => ({
+  id: inv.id,
+  number: inv.number,
+  status: inv.status,
+  recipientName: inv.recipientName,
+  recipientAddress: inv.recipientAddress ?? '',
+  recipientEmail: inv.recipientEmail ?? '',
+  contactId: inv.contactId ?? '',
+  eventId: inv.eventId ?? '',
+  issueDate: dateInput(inv.issueDate),
+  serviceDate: inv.serviceDate ?? '',
+  dueDays: inv.dueDays ?? '',
+  taxMode: inv.taxMode,
+  taxRatePercent: inv.taxRatePercent,
+  intro: inv.intro ?? '',
+  notes: inv.notes ?? '',
+  booked: !!inv.financeEntryId,
+  grossCents: inv.totals.grossCents,
+  netCents: inv.totals.netCents,
+  items: inv.items.map((it) => ({
+    description: it.description,
+    quantity: it.quantity,
+    unitPrice: (it.unitPriceCents / 100).toFixed(2),
+  })),
+}));
+
+// Address-book entries for the recipient picker (prefill name / email / city).
+const contactOptions = contacts.map((c) => ({
+  id: c.id,
+  label: `${c.name}${c.city ? ` · ${c.city}` : ''}`,
+  name: c.name,
+  email: c.email ?? '',
+  city: c.city ?? '',
+}));
+
+// Defaults for a new invoice, from the sender settings (Korbinian pflegt sie).
+const invDefaults = {
+  taxMode: invSettings.defaultTaxMode,
+  taxRatePercent: invSettings.defaultTaxRatePercent,
+  dueDays: invSettings.defaultDueDays,
+};
+const TAX_RATE_CHOICES = [0, 7, 19];
 
 const inputBase =
   'rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame';
@@ -90,6 +143,156 @@ const inputBase =
         ))}
       </p>
     )}
+
+    <!-- ══ Rechnungen ══ -->
+    <div class="mt-12">
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl">Rechnungen</h2>
+        <button type="button" id="inv-new"
+          class="rounded-lg bg-flame px-4 py-2 font-display text-base uppercase tracking-wide text-ink transition-colors hover:bg-flame-soft">
+          ＋ Neue Rechnung
+        </button>
+      </div>
+      <p class="mt-2 text-sm text-cream-soft">
+        Eigene Rechnungen schreiben (statt SumUp-App), als PDF drucken und mit einem Klick als Einnahme buchen.
+      </p>
+
+      {invSettings.isPlaceholder && (
+        <div class="mt-4 rounded-xl border border-flame/40 bg-flame/10 p-4 text-sm text-cream-soft">
+          ⚠️ <b>Absenderdaten fehlen noch.</b> Damit die Rechnungen rechtsgültig sind (Bandanschrift,
+          Steuernummer, IBAN, USt-Modus), muss Korbinian die Umgebungsvariable
+          <code class="text-flame">INVOICE_SETTINGS</code> in Vercel setzen — siehe <code>.env.example</code>.
+          Bis dahin erscheinen Platzhalter auf dem Rechnungs-PDF.
+        </div>
+      )}
+
+      <!-- Editor (hidden until „Neue Rechnung" / „Bearbeiten") -->
+      <form id="inv-form" hidden class="mt-5 rounded-xl border border-flame/30 bg-ink-soft/60 p-5">
+        <input type="hidden" id="i-id" />
+        <div class="flex items-center justify-between">
+          <h3 id="inv-form-title" class="text-xl">Neue Rechnung</h3>
+          <span id="i-number" class="text-xs uppercase tracking-[0.2em] text-cream/40"></span>
+        </div>
+
+        <!-- Empfänger -->
+        <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-xs uppercase tracking-wider text-cream/40 sm:col-span-2">Empfänger aus Kontakten
+            <select id="i-contact" class={inputBase}>
+              <option value="">— Freitext —</option>
+              {contactOptions.map((o) => <option value={o.id}>{o.label}</option>)}
+            </select>
+          </label>
+          <input id="i-recipient" required placeholder="Empfänger (Name / Firma)" autocomplete="off" class={`${inputBase} sm:col-span-2`} />
+          <textarea id="i-address" rows="3" placeholder="Anschrift (Straße, PLZ Ort)" class={`${inputBase} sm:col-span-2`}></textarea>
+          <input id="i-email" placeholder="E-Mail (optional)" autocomplete="off" class={inputBase} />
+          <label class="flex flex-col gap-1 text-xs uppercase tracking-wider text-cream/40">Gig (optional)
+            <select id="i-event" class={inputBase}>
+              <option value="">— kein Gig —</option>
+              {gigOptions.map((o) => <option value={o.id}>{o.label}</option>)}
+            </select>
+          </label>
+        </div>
+
+        <!-- Eckdaten -->
+        <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <label class="flex flex-col gap-1 text-xs uppercase tracking-wider text-cream/40">Rechnungsdatum
+            <input id="i-date" required type="date" value={today} class={inputBase} />
+          </label>
+          <label class="flex flex-col gap-1 text-xs uppercase tracking-wider text-cream/40">Leistungsdatum
+            <input id="i-service" placeholder="z. B. 12.07.2026" autocomplete="off" class={inputBase} />
+          </label>
+          <label class="flex flex-col gap-1 text-xs uppercase tracking-wider text-cream/40">Zahlungsziel (Tage)
+            <input id="i-due" inputmode="numeric" placeholder={String(invDefaults.dueDays)} autocomplete="off" class={inputBase} />
+          </label>
+        </div>
+
+        <!-- Steuer -->
+        <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-xs uppercase tracking-wider text-cream/40">Steuer-Modus
+            <select id="i-taxmode" class={inputBase}>
+              {TAX_MODES.map((m) => <option value={m} selected={m === invDefaults.taxMode}>{TAX_MODE_LABEL[m]}</option>)}
+            </select>
+          </label>
+          <label id="i-rate-wrap" class="flex flex-col gap-1 text-xs uppercase tracking-wider text-cream/40">USt-Satz
+            <select id="i-rate" class={inputBase}>
+              {TAX_RATE_CHOICES.map((r) => <option value={r} selected={r === invDefaults.taxRatePercent}>{r} %</option>)}
+            </select>
+          </label>
+        </div>
+        <p class="mt-2 text-xs text-cream/40">
+          Im Zweifel mit Korbinian klären: Kleinunternehmer (§19) → keine USt · Regelbesteuerung → USt ausgewiesen.
+          Standard kommt aus den Absender-Einstellungen.
+        </p>
+
+        <textarea id="i-intro" rows="2" placeholder="Einleitungstext (optional) — z. B. Dank für den schönen Abend" class={`${inputBase} mt-3 w-full`}></textarea>
+
+        <!-- Positionen -->
+        <div class="mt-5">
+          <div class="mb-2 flex items-center justify-between">
+            <h4 class="text-sm uppercase tracking-wider text-cream/50">Positionen</h4>
+            <span id="i-total" class="text-sm tabular-nums text-teal"></span>
+          </div>
+          <div class="hidden gap-2 text-[10px] uppercase tracking-wider text-cream/30 sm:grid sm:grid-cols-[1fr_5rem_7rem_2rem]">
+            <div>Beschreibung</div><div class="text-right">Menge</div><div class="text-right">Einzelpreis €</div><div></div>
+          </div>
+          <div id="i-items" class="mt-1 flex flex-col gap-2"></div>
+          <button type="button" id="i-additem"
+            class="mt-3 rounded-lg border border-cream/15 px-3 py-2 text-xs uppercase tracking-[0.15em] text-cream-soft transition-colors hover:border-flame hover:text-flame">
+            ＋ Position
+          </button>
+        </div>
+
+        <textarea id="i-notes" rows="2" placeholder="Notiz / Zahlungshinweis (optional — sonst Standardtext)" class={`${inputBase} mt-4 w-full`}></textarea>
+
+        <div class="mt-5 flex items-center gap-4">
+          <button id="i-submit" type="submit"
+            class="rounded-lg bg-flame px-5 py-3 font-display text-lg uppercase tracking-wide text-ink transition-colors hover:bg-flame-soft disabled:opacity-50">
+            Speichern
+          </button>
+          <button id="i-cancel" type="button" class="text-xs uppercase tracking-[0.15em] text-cream-soft hover:text-flame">Abbrechen</button>
+          <p id="i-msg" role="status" class="text-sm text-teal" hidden></p>
+        </div>
+      </form>
+
+      <!-- Liste -->
+      {invoices.length === 0 && <p class="mt-4 text-sm text-cream/40">Noch keine Rechnungen — leg oben die erste an.</p>}
+      <ul class="mt-4 flex flex-col gap-2">
+        {invoices.map((inv) => (
+          <li class="rounded-xl border border-cream/10 bg-ink-soft/50 p-4" data-invoice data-id={inv.id}>
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span class="font-mono text-xs text-cream/40">{inv.number}</span>
+              <div class="min-w-0 flex-1">
+                <div class="truncate">{inv.recipientName}</div>
+                <div class="truncate text-xs text-cream/40">
+                  {fmtDay(inv.issueDate)}
+                  {' · '}{INV_STATUS_LABEL[inv.status as keyof typeof INV_STATUS_LABEL]}
+                  {inv.financeEntryId ? ' · gebucht' : ''}
+                  {inv.eventId && gigTitle.has(inv.eventId) ? ` · ${gigTitle.get(inv.eventId)}` : ''}
+                </div>
+              </div>
+              <span class={`rounded px-2 py-0.5 text-[10px] uppercase tracking-wider ${
+                inv.status === 'bezahlt' ? 'bg-teal/20 text-teal'
+                : inv.status === 'gestellt' ? 'bg-flame/20 text-flame'
+                : inv.status === 'storniert' ? 'bg-cream/10 text-cream/40'
+                : 'bg-cream/10 text-cream-soft'}`}>{INV_STATUS_LABEL[inv.status as keyof typeof INV_STATUS_LABEL]}</span>
+              <span class="shrink-0 tabular-nums text-teal">{fmtEuro(inv.totals.grossCents)}</span>
+            </div>
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              <a href={`/backend/rechnungen/${inv.id}`} target="_blank"
+                class="rounded border border-cream/15 px-2 py-1 text-[10px] uppercase tracking-[0.15em] text-cream-soft transition-colors hover:border-flame hover:text-flame">PDF / Drucken</a>
+              <select data-inv-status class="rounded border border-cream/15 bg-ink px-2 py-1 text-[10px] uppercase tracking-[0.15em] text-cream-soft focus:border-flame">
+                {Object.entries(INV_STATUS_LABEL).map(([v, l]) => <option value={v} selected={v === inv.status}>{l}</option>)}
+              </select>
+              {!inv.financeEntryId && (
+                <button data-inv-book class="rounded border border-teal/40 px-2 py-1 text-[10px] uppercase tracking-[0.15em] text-teal transition-colors hover:bg-teal/10">Als Einnahme buchen</button>
+              )}
+              <button data-inv-edit class="rounded border border-cream/15 px-2 py-1 text-[10px] uppercase tracking-[0.15em] text-cream-soft transition-colors hover:border-flame hover:text-flame">Bearb.</button>
+              <button data-inv-del class="rounded border border-cream/15 px-2 py-1 text-[10px] uppercase tracking-[0.15em] text-cream-soft transition-colors hover:border-flame hover:text-flame">Löschen</button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
 
     <!-- Add / edit -->
     <form id="fin-form" class="mt-8 rounded-xl border border-cream/10 bg-ink-soft/50 p-5">
@@ -222,6 +425,9 @@ const inputBase =
 
   <script id="fin-entries" type="application/json" set:html={JSON.stringify(clientEntries)}></script>
   <script id="fin-categories" type="application/json" set:html={JSON.stringify(CATEGORIES)}></script>
+  <script id="inv-data" type="application/json" set:html={JSON.stringify(clientInvoices)}></script>
+  <script id="inv-contacts" type="application/json" set:html={JSON.stringify(contactOptions)}></script>
+  <script id="inv-defaults" type="application/json" set:html={JSON.stringify(invDefaults)}></script>
 </Layout>
 
 <script>
@@ -502,5 +708,205 @@ const inputBase =
       impMsg.textContent = data.error ?? 'Import fehlgeschlagen.';
       impMsg.style.color = 'var(--color-flame)';
     }
+  });
+
+  // ══════════════════ Rechnungen ══════════════════
+  type InvItem = { description: string; quantity: number; unitPrice: string };
+  type Invoice = {
+    id: string; number: string; status: string; recipientName: string; recipientAddress: string;
+    recipientEmail: string; contactId: string; eventId: string; issueDate: string; serviceDate: string;
+    dueDays: number | string; taxMode: string; taxRatePercent: number; intro: string; notes: string;
+    booked: boolean; grossCents: number; netCents: number; items: InvItem[];
+  };
+  type ContactOpt = { id: string; label: string; name: string; email: string; city: string };
+  const INVOICES: Invoice[] = JSON.parse(document.getElementById('inv-data')!.textContent || '[]');
+  const CONTACTS: ContactOpt[] = JSON.parse(document.getElementById('inv-contacts')!.textContent || '[]');
+  const INV_DEFAULTS = JSON.parse(document.getElementById('inv-defaults')!.textContent || '{}') as
+    { taxMode: string; taxRatePercent: number; dueDays: number };
+
+  const invForm = document.getElementById('inv-form') as HTMLFormElement;
+  const invTitle = document.getElementById('inv-form-title') as HTMLElement;
+  const invNumberBadge = document.getElementById('i-number') as HTMLElement;
+  const itemsWrap = document.getElementById('i-items') as HTMLElement;
+  const taxMode = sel('i-taxmode');
+  const rateWrap = document.getElementById('i-rate-wrap') as HTMLElement;
+  const rateSel = sel('i-rate');
+  const totalEl = document.getElementById('i-total') as HTMLElement;
+  const invSubmit = document.getElementById('i-submit') as HTMLButtonElement;
+
+  const invMsg = (t: string, ok = true) => {
+    const el = document.getElementById('i-msg') as HTMLElement;
+    el.textContent = t;
+    el.style.color = ok ? 'var(--color-teal)' : 'var(--color-flame)';
+    el.hidden = false;
+  };
+
+  function itemRow(it?: InvItem): HTMLElement {
+    const row = document.createElement('div');
+    row.className = 'grid grid-cols-[1fr_3.5rem_5rem] items-center gap-2 sm:grid-cols-[1fr_5rem_7rem_2rem]';
+    row.innerHTML = `
+      <input data-desc placeholder="Beschreibung (z. B. Auftritt / Fahrtkosten / T-Shirt)" autocomplete="off"
+        class="rounded-lg border border-cream/15 bg-ink px-3 py-2 text-cream outline-none placeholder:text-cream/30 focus:border-flame" />
+      <input data-qty inputmode="numeric" value="1"
+        class="rounded-lg border border-cream/15 bg-ink px-2 py-2 text-right text-cream outline-none focus:border-flame" />
+      <input data-unit inputmode="decimal" placeholder="0,00"
+        class="rounded-lg border border-cream/15 bg-ink px-2 py-2 text-right text-cream outline-none placeholder:text-cream/30 focus:border-flame" />
+      <button type="button" data-remove class="hidden text-cream/40 transition-colors hover:text-flame sm:block" title="Position entfernen">✕</button>`;
+    if (it) {
+      (row.querySelector('[data-desc]') as HTMLInputElement).value = it.description;
+      (row.querySelector('[data-qty]') as HTMLInputElement).value = String(it.quantity);
+      (row.querySelector('[data-unit]') as HTMLInputElement).value = String(it.unitPrice).replace('.', ',');
+    }
+    row.querySelectorAll('input').forEach((inp) => inp.addEventListener('input', renderInvTotal));
+    row.querySelector('[data-remove]')?.addEventListener('click', () => {
+      if (itemsWrap.children.length > 1) { row.remove(); renderInvTotal(); }
+    });
+    return row;
+  }
+
+  function collectItems() {
+    return [...itemsWrap.children].map((row) => {
+      const description = (row.querySelector('[data-desc]') as HTMLInputElement).value.trim();
+      const quantity = parseInt((row.querySelector('[data-qty]') as HTMLInputElement).value, 10);
+      const unitCents = parseEuro((row.querySelector('[data-unit]') as HTMLInputElement).value);
+      return { description, quantity: isNaN(quantity) ? 0 : quantity, unitPriceCents: unitCents };
+    });
+  }
+
+  function renderInvTotal() {
+    const items = collectItems();
+    const net = items.reduce((s, it) => s + (it.quantity > 0 && it.unitPriceCents != null ? it.quantity * it.unitPriceCents : 0), 0);
+    const regel = taxMode.value === 'regel';
+    const rate = regel ? Number(rateSel.value) : 0;
+    const tax = Math.round((net * rate) / 100);
+    const gross = net + tax;
+    totalEl.textContent = regel
+      ? `Netto ${fmtCents(net)} · USt ${fmtCents(tax)} · Brutto ${fmtCents(gross)}`
+      : `Gesamt ${fmtCents(gross)}`;
+  }
+
+  function syncTaxUI() {
+    rateWrap.style.display = taxMode.value === 'regel' ? '' : 'none';
+    renderInvTotal();
+  }
+  taxMode.addEventListener('change', syncTaxUI);
+  rateSel.addEventListener('change', renderInvTotal);
+
+  // Contact picker → prefill recipient fields.
+  sel('i-contact').addEventListener('change', () => {
+    const c = CONTACTS.find((x) => x.id === sel('i-contact').value);
+    if (!c) return;
+    $('i-recipient').value = c.name;
+    if (c.email) $('i-email').value = c.email;
+    const addr = $('i-address') as unknown as HTMLTextAreaElement;
+    if (c.city && !addr.value.trim()) addr.value = c.city;
+  });
+
+  function resetInvForm() {
+    $('i-id').value = '';
+    sel('i-contact').value = '';
+    $('i-recipient').value = '';
+    ($('i-address') as unknown as HTMLTextAreaElement).value = '';
+    $('i-email').value = '';
+    sel('i-event').value = '';
+    ($('i-date') as HTMLInputElement).value = ($('i-date') as HTMLInputElement).defaultValue;
+    $('i-service').value = '';
+    $('i-due').value = '';
+    taxMode.value = INV_DEFAULTS.taxMode;
+    rateSel.value = String(INV_DEFAULTS.taxRatePercent);
+    ($('i-intro') as unknown as HTMLTextAreaElement).value = '';
+    ($('i-notes') as unknown as HTMLTextAreaElement).value = '';
+    itemsWrap.innerHTML = '';
+    itemsWrap.appendChild(itemRow());
+    invNumberBadge.textContent = '';
+    invTitle.textContent = 'Neue Rechnung';
+    (document.getElementById('i-msg') as HTMLElement).hidden = true;
+    syncTaxUI();
+  }
+
+  function openInvForm() { invForm.hidden = false; invForm.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+
+  document.getElementById('inv-new')!.addEventListener('click', () => { resetInvForm(); openInvForm(); });
+  document.getElementById('i-cancel')!.addEventListener('click', () => { invForm.hidden = true; });
+  document.getElementById('i-additem')!.addEventListener('click', () => { itemsWrap.appendChild(itemRow()); });
+
+  function fillInvForm(inv: Invoice) {
+    $('i-id').value = inv.id;
+    sel('i-contact').value = inv.contactId || '';
+    $('i-recipient').value = inv.recipientName;
+    ($('i-address') as unknown as HTMLTextAreaElement).value = inv.recipientAddress;
+    $('i-email').value = inv.recipientEmail;
+    sel('i-event').value = inv.eventId || '';
+    $('i-date').value = inv.issueDate;
+    $('i-service').value = inv.serviceDate;
+    $('i-due').value = inv.dueDays === '' ? '' : String(inv.dueDays);
+    taxMode.value = inv.taxMode;
+    rateSel.value = String(inv.taxRatePercent || INV_DEFAULTS.taxRatePercent);
+    ($('i-intro') as unknown as HTMLTextAreaElement).value = inv.intro;
+    ($('i-notes') as unknown as HTMLTextAreaElement).value = inv.notes;
+    itemsWrap.innerHTML = '';
+    (inv.items.length ? inv.items : [{ description: '', quantity: 1, unitPrice: '' }]).forEach((it) => itemsWrap.appendChild(itemRow(it)));
+    invNumberBadge.textContent = `Nr. ${inv.number}`;
+    invTitle.textContent = 'Rechnung bearbeiten';
+    (document.getElementById('i-msg') as HTMLElement).hidden = true;
+    syncTaxUI();
+  }
+
+  invForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const recipientName = $('i-recipient').value.trim();
+    if (!recipientName) return invMsg('Empfänger ist Pflicht.', false);
+    const items = collectItems();
+    if (items.some((it) => !it.description)) return invMsg('Jede Position braucht eine Beschreibung.', false);
+    if (items.some((it) => it.quantity <= 0)) return invMsg('Menge muss größer als 0 sein.', false);
+    if (items.some((it) => it.unitPriceCents == null)) return invMsg('Einzelpreis ungültig.', false);
+    const dueRaw = $('i-due').value.trim();
+    const payload = {
+      id: $('i-id').value || undefined,
+      recipientName,
+      recipientAddress: ($('i-address') as unknown as HTMLTextAreaElement).value.trim() || null,
+      recipientEmail: $('i-email').value.trim() || null,
+      contactId: sel('i-contact').value || null,
+      eventId: sel('i-event').value || null,
+      issueDate: new Date($('i-date').value).toISOString(),
+      serviceDate: $('i-service').value.trim() || null,
+      dueDays: dueRaw ? parseInt(dueRaw, 10) : null,
+      taxMode: taxMode.value,
+      taxRatePercent: taxMode.value === 'regel' ? Number(rateSel.value) : 0,
+      intro: ($('i-intro') as unknown as HTMLTextAreaElement).value.trim() || null,
+      notes: ($('i-notes') as unknown as HTMLTextAreaElement).value.trim() || null,
+      items,
+    };
+    invSubmit.disabled = true;
+    invSubmit.textContent = 'Speichert …';
+    const { ok, data } = await post('/api/invoice/save', payload);
+    invSubmit.disabled = false;
+    invSubmit.textContent = 'Speichern';
+    if (ok) { invMsg('Gespeichert.'); setTimeout(() => location.reload(), 500); }
+    else invMsg(data.error ?? 'Speichern fehlgeschlagen.', false);
+  });
+
+  document.querySelectorAll('[data-invoice]').forEach((li) => {
+    const id = (li as HTMLElement).dataset.id!;
+    const inv = INVOICES.find((x) => x.id === id);
+    li.querySelector('[data-inv-edit]')?.addEventListener('click', () => { if (inv) { fillInvForm(inv); openInvForm(); } });
+    li.querySelector('[data-inv-status]')?.addEventListener('change', async (e) => {
+      const status = (e.target as HTMLSelectElement).value;
+      const { ok, data } = await post('/api/invoice/status', { id, status });
+      if (ok) location.reload();
+      else alert(data.error ?? 'Status ändern fehlgeschlagen.');
+    });
+    li.querySelector('[data-inv-book]')?.addEventListener('click', async () => {
+      if (!confirm('Diese Rechnung als Einnahme ins Kassenbuch buchen? (Status wird „Bezahlt".)')) return;
+      const { ok, data } = await post('/api/invoice/book', { id });
+      if (ok) location.reload();
+      else alert(data.error ?? 'Buchen fehlgeschlagen.');
+    });
+    li.querySelector('[data-inv-del]')?.addEventListener('click', async () => {
+      if (!confirm(`Rechnung ${inv?.number ?? ''} wirklich löschen?`)) return;
+      const { ok, data } = await post('/api/invoice/delete', { id });
+      if (ok) location.reload();
+      else alert(data.error ?? 'Löschen fehlgeschlagen.');
+    });
   });
 </script>

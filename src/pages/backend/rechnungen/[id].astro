@@ -1,0 +1,253 @@
+---
+// Printable A4 invoice. Standalone light document (NOT the dark marketing shell)
+// so it prints clean on paper / saves to PDF via the browser — but styled in the
+// band's visual language (coral/navy/cream, Big Shoulders display font, the "S"
+// mark from the favicon). Auth-guarded by middleware (/backend/*). No external
+// requests — the brand fonts are bundled locally via @fontsource (egress-free).
+export const prerender = false;
+
+// Brand fonts — same faces the website ships (local, DSGVO-safe, no Google CDN).
+import '@fontsource/big-shoulders-display/700.css';
+import '@fontsource/big-shoulders-display/900.css';
+import '@fontsource-variable/inter-tight';
+
+import {
+  getInvoice, getInvoiceSettings, computeTotals, fmtEuro, fmtInvoiceDate, dueDate,
+  STATUS_LABEL, type Status, type TaxMode,
+} from '../../../lib/invoices';
+
+const { id } = Astro.params;
+const inv = id ? await getInvoice(id) : null;
+if (!inv) return Astro.redirect('/backend/finanzen');
+
+const s = getInvoiceSettings();
+const totals = computeTotals(inv.items, inv.taxMode as TaxMode, inv.taxRatePercent);
+const due = dueDate(inv.issueDate, inv.dueDays);
+const isKlein = inv.taxMode === 'kleinunternehmer';
+const senderOneLine = `${s.senderName} · ${s.senderLines.join(', ')}`;
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rechnung {inv.number} — {inv.recipientName}</title>
+    <style>
+      :root {
+        --ink: #0a1424; --navy-soft: #14213a;
+        --coral: #e87a8e; --coral-soft: #f29bab; --teal: #5fc1d1;
+        --cream: #f4ece0; --wash: #f7f3ec;
+        --text: #1c2433; --muted: #6f7787; --line: #e6e8ec;
+        --font-display: "Big Shoulders Display", "Arial Narrow", system-ui, sans-serif;
+        --font-body: "Inter Tight Variable", system-ui, -apple-system, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: #eceae6; color: var(--text);
+        font-family: var(--font-body); font-size: 12px; line-height: 1.5; }
+      h1, h2, h3, h4 { font-family: var(--font-display); text-transform: uppercase; font-weight: 900;
+        letter-spacing: -0.01em; line-height: 0.92; margin: 0; }
+      .toolbar { max-width: 820px; margin: 16px auto 0; display: flex; gap: 12px; justify-content: flex-end; padding: 0 12px; }
+      .toolbar a, .toolbar button { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .05em;
+        font-weight: 700; font-size: 13px; padding: 9px 18px; border-radius: 8px; border: 1px solid #c9c6c0;
+        background: #fff; color: #333; cursor: pointer; text-decoration: none; }
+      .toolbar button.primary { background: var(--coral); border-color: var(--ink); color: var(--ink);
+        box-shadow: 4px 4px 0 var(--teal); }
+      .warn { max-width: 820px; margin: 12px auto 0; padding: 10px 14px; border-radius: 8px;
+        background: #fff4e5; border: 1px solid #f0c890; color: #8a5a00; font-size: 12px; }
+
+      .sheet { max-width: 820px; margin: 16px auto 40px; background: #fff; padding: 0 0 48px;
+        box-shadow: 0 2px 20px rgba(10,20,36,.12); min-height: 1000px; border-top: 6px solid var(--coral); overflow: hidden; }
+      .pad { padding: 0 60px; }
+
+      /* Letterhead */
+      .letterhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding: 44px 60px 0; }
+      .brand { display: flex; align-items: center; gap: 14px; }
+      .mark { width: 50px; height: 50px; flex: none; border-radius: 10px; }
+      .wordmark { font-family: var(--font-display); font-weight: 900; text-transform: uppercase;
+        font-size: 26px; color: var(--ink); letter-spacing: -0.01em; line-height: 0.9; }
+      .tagline { font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.22em; font-size: 8.5px; color: var(--coral); margin-top: 3px; }
+      .meta { text-align: right; font-size: 11px; color: var(--muted); }
+      .meta b { color: var(--ink); }
+
+      /* Recipient */
+      .addr-return { font-size: 9px; color: var(--muted); margin-bottom: 8px; }
+      .recipient { margin-top: 46px; }
+      .recipient .name { font-weight: 600; font-size: 13px; color: var(--ink); }
+      .recipient .addr { white-space: pre-line; color: var(--text); }
+      .recipient .mail { color: var(--muted); font-size: 11px; }
+
+      /* Section label — echoes the site's coral "section-mark" */
+      .label { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.22em;
+        font-size: 10px; font-weight: 700; color: var(--coral); border-bottom: 1px solid rgba(232,122,142,.35);
+        padding-bottom: 5px; margin-bottom: 10px; }
+
+      /* Doc head */
+      .doc-head { margin-top: 40px; display: flex; align-items: baseline; gap: 16px; }
+      .doc-head .kicker { font-size: 40px; color: var(--coral); }
+      .doc-head .no { font-family: var(--font-display); font-weight: 700; letter-spacing: .02em; color: var(--ink); font-size: 15px; }
+      .status-pill { margin-left: auto; align-self: center; font-family: var(--font-display); text-transform: uppercase;
+        letter-spacing: .12em; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+        background: var(--wash); color: var(--ink); border: 1px solid var(--line); }
+      .facts { margin-top: 8px; color: var(--muted); font-size: 11px; }
+      .facts span { margin-right: 20px; }
+      .facts b { color: var(--ink); }
+      .intro { margin-top: 22px; white-space: pre-line; color: var(--text); }
+
+      /* Items */
+      table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+      th, td { text-align: left; padding: 10px 8px; }
+      thead th { border-bottom: 2px solid var(--ink); font-family: var(--font-display); font-weight: 700;
+        font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink); }
+      tbody td { border-bottom: 1px solid var(--line); vertical-align: top; color: var(--text); }
+      tbody tr:nth-child(even) td { background: #faf8f4; }
+      .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+      .pos { color: var(--muted); width: 30px; }
+
+      .totals { margin-top: 18px; margin-left: auto; width: 58%; }
+      .totals .row { display: flex; justify-content: space-between; padding: 6px 8px; color: var(--text); }
+      .totals .grand { border-top: 2px solid var(--coral); font-family: var(--font-display); font-weight: 900;
+        text-transform: uppercase; letter-spacing: .01em; font-size: 17px; color: var(--ink); margin-top: 4px; padding-top: 10px; }
+      .totals .grand .num { font-family: var(--font-body); font-weight: 700; }
+
+      .klein { margin-top: 20px; font-style: italic; color: var(--text); }
+      .note { margin-top: 26px; white-space: pre-line; color: var(--text); }
+
+      .pay { margin-top: 30px; background: var(--wash); border-left: 3px solid var(--coral); border-radius: 0 8px 8px 0;
+        padding: 14px 18px; font-size: 11px; color: var(--text); }
+      .pay .grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 16px; margin-top: 8px; }
+      .pay .grid div:nth-child(odd) { color: var(--muted); }
+      .pay b { color: var(--ink); }
+
+      .foot { margin-top: 34px; border-top: 1px solid var(--line); padding-top: 12px; color: var(--muted);
+        font-size: 10px; display: flex; flex-wrap: wrap; gap: 4px 20px; }
+      .foot b { color: var(--ink); font-weight: 600; }
+
+      @media print {
+        html, body { background: #fff; }
+        .toolbar, .warn { display: none; }
+        .sheet { box-shadow: none; margin: 0; max-width: none; min-height: 0; padding-bottom: 0; border-top: 6px solid var(--coral); }
+        .letterhead { padding-top: 8px; }
+        @page { size: A4; margin: 16mm; }
+        tbody tr:nth-child(even) td, .pay { background: var(--wash) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <a href="/backend/finanzen">← Finanzen</a>
+      <button class="primary" onclick="window.print()">Drucken / als PDF speichern</button>
+    </div>
+
+    {s.isPlaceholder && (
+      <div class="warn">
+        ⚠️ Absenderdaten sind noch Platzhalter. Korbinian muss die Band-Adresse, Steuernummer und
+        Bankverbindung in der Vercel-Umgebungsvariable <b>INVOICE_SETTINGS</b> hinterlegen, bevor
+        diese Rechnung rausgeht.
+      </div>
+    )}
+
+    <div class="sheet">
+      <div class="letterhead">
+        <div class="brand">
+          <svg class="mark" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="64" height="64" rx="10" fill="#0a1424" />
+            <text x="32" y="50" text-anchor="middle" font-family="Big Shoulders Display, Impact, sans-serif" font-weight="900" font-size="68" fill="#f4ece0">S</text>
+            <rect x="14" y="54" width="36" height="3.5" fill="#e87a8e" />
+          </svg>
+          <div>
+            <div class="wordmark">{s.senderName}</div>
+            <div class="tagline">Melodic Punk Rock · Bayern</div>
+          </div>
+        </div>
+        <div class="meta">
+          {s.email && <div>{s.email}</div>}
+          {s.phone && <div>{s.phone}</div>}
+          {s.website && <div>{s.website}</div>}
+          {s.taxNumber && s.taxNumber !== '—' && <div>Steuer-Nr.: {s.taxNumber}</div>}
+          {s.vatId && <div>USt-IdNr.: {s.vatId}</div>}
+        </div>
+      </div>
+
+      <div class="pad">
+        <div class="recipient">
+          <div class="addr-return">{senderOneLine}</div>
+          <div class="name">{inv.recipientName}</div>
+          {inv.recipientAddress && <div class="addr">{inv.recipientAddress}</div>}
+          {inv.recipientEmail && <div class="mail">{inv.recipientEmail}</div>}
+        </div>
+
+        <div class="doc-head">
+          <span class="kicker">Rechnung</span>
+          <span class="no">Nr. {inv.number}</span>
+          <span class="status-pill">{STATUS_LABEL[inv.status as Status]}</span>
+        </div>
+        <div class="facts">
+          <span>Rechnungsdatum: <b>{fmtInvoiceDate(inv.issueDate)}</b></span>
+          {inv.serviceDate && <span>Leistung: <b>{inv.serviceDate}</b></span>}
+          {due && <span>Zahlbar bis: <b>{fmtInvoiceDate(due)}</b></span>}
+        </div>
+
+        {inv.intro && <p class="intro">{inv.intro}</p>}
+
+        <table>
+          <thead>
+            <tr>
+              <th class="pos">Pos</th>
+              <th>Beschreibung</th>
+              <th class="num">Menge</th>
+              <th class="num">Einzelpreis</th>
+              <th class="num">Betrag</th>
+            </tr>
+          </thead>
+          <tbody>
+            {inv.items.map((it, i) => (
+              <tr>
+                <td class="pos">{i + 1}</td>
+                <td>{it.description}</td>
+                <td class="num">{it.quantity}</td>
+                <td class="num">{fmtEuro(it.unitPriceCents)}</td>
+                <td class="num">{fmtEuro(it.quantity * it.unitPriceCents)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div class="totals">
+          {!isKlein && (
+            <>
+              <div class="row"><span>Nettobetrag</span><span class="num">{fmtEuro(totals.netCents)}</span></div>
+              <div class="row"><span>zzgl. {inv.taxRatePercent} % USt</span><span class="num">{fmtEuro(totals.taxCents)}</span></div>
+            </>
+          )}
+          <div class="row grand"><span>{isKlein ? 'Gesamtbetrag' : 'Rechnungsbetrag'}</span><span class="num">{fmtEuro(totals.grossCents)}</span></div>
+        </div>
+
+        {isKlein && <p class="klein">{s.kleinunternehmerNote}</p>}
+
+        {inv.notes && <p class="note">{inv.notes}</p>}
+        {!inv.notes && s.paymentNote && <p class="note">{s.paymentNote}</p>}
+
+        {(s.iban || s.bankName) && (
+          <div class="pay">
+            <b>Bankverbindung</b>
+            <div class="grid">
+              {(s.accountHolder || s.senderName) && <><div>Kontoinhaber</div><div>{s.accountHolder || s.senderName}</div></>}
+              {s.bankName && <><div>Bank</div><div>{s.bankName}</div></>}
+              {s.iban && <><div>IBAN</div><div>{s.iban}</div></>}
+              {s.bic && <><div>BIC</div><div>{s.bic}</div></>}
+            </div>
+          </div>
+        )}
+
+        <div class="foot">
+          <span><b>{s.senderName}</b></span>
+          {s.taxNumber && s.taxNumber !== '—' && <span>Steuer-Nr. {s.taxNumber}</span>}
+          {s.vatId && <span>USt-IdNr. {s.vatId}</span>}
+          {s.email && <span>{s.email}</span>}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
