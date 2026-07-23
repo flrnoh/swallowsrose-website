@@ -221,6 +221,52 @@ export const contact = pgTable('contact', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+// Invoices — the band writes its own gig/merch invoices here (replacing the
+// external SumUp invoicing app). The recipient is snapshotted onto the invoice
+// so later address-book edits never rewrite billed history; an optional
+// contactId keeps the live link. Optionally tied to a gig, and — once paid —
+// booked into the finance ledger (financeEntryId, to avoid double-booking).
+// taxMode is settable per invoice (Kleinunternehmer §19 vs. Regelbesteuerung).
+export const invoice = pgTable('invoice', {
+  id: text('id').primaryKey(),
+  // Fortlaufende, eindeutige Rechnungsnummer (Pflichtangabe), z. B. "2026-001".
+  number: text('number').notNull().unique(),
+  // 'entwurf' | 'gestellt' | 'bezahlt' | 'storniert'
+  status: text('status').notNull().default('entwurf'),
+  // Recipient snapshot (immutable once billed) + optional live link to the book.
+  recipientName: text('recipient_name').notNull(),
+  recipientAddress: text('recipient_address'), // multi-line street / zip / city
+  recipientEmail: text('recipient_email'),
+  contactId: text('contact_id').references(() => contact.id, { onDelete: 'set null' }),
+  eventId: text('event_id').references(() => event.id, { onDelete: 'set null' }),
+  issueDate: timestamp('issue_date').notNull(),
+  serviceDate: text('service_date'), // Leistungsdatum/-zeitraum, free text (Gig-Tag)
+  dueDays: integer('due_days'), // Zahlungsziel in Tagen (null = kein explizites)
+  // Steuer: 'kleinunternehmer' (§19 UStG, keine USt) | 'regel' (USt ausgewiesen).
+  taxMode: text('tax_mode').notNull().default('kleinunternehmer'),
+  taxRatePercent: integer('tax_rate_percent').notNull().default(0), // 0 / 7 / 19
+  intro: text('intro'), // optionaler Einleitungstext über den Positionen
+  notes: text('notes'), // Fußnotiz / Zahlungshinweis
+  // Set when a paid invoice has been booked into the ledger (guards double-book).
+  financeEntryId: text('finance_entry_id').references(() => financeEntry.id, { onDelete: 'set null' }),
+  createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// Line items of an invoice. position = 0-based order; net unit price in cents,
+// whole-unit quantity (line net = quantity × unitPriceCents, always exact).
+export const invoiceItem = pgTable('invoice_item', {
+  id: text('id').primaryKey(),
+  invoiceId: text('invoice_id')
+    .notNull()
+    .references(() => invoice.id, { onDelete: 'cascade' }),
+  position: integer('position').notNull(),
+  description: text('description').notNull(),
+  quantity: integer('quantity').notNull().default(1),
+  unitPriceCents: integer('unit_price_cents').notNull(),
+});
+
 export const schema = {
   user,
   session,
@@ -234,4 +280,6 @@ export const schema = {
   setlistItem,
   financeEntry,
   contact,
+  invoice,
+  invoiceItem,
 };
