@@ -70,7 +70,7 @@ const PLACEHOLDER_SETTINGS: InvoiceSettings = {
   senderLines: ['— Absenderadresse fehlt —', 'PLZ Ort'],
   taxNumber: '—',
   vatId: '',
-  email: 'crew@swallowsrose.com',
+  email: 'info@swallowsrose.com',
   phone: '',
   website: 'swallowsrose.com',
   accountHolder: '',
