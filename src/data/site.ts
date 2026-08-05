@@ -30,6 +30,30 @@ export const links = {
 export const spotifyEmbedSrc =
   'https://open.spotify.com/embed/artist/6tJMwSfznqmbuudBww2qUw?utm_source=generator&theme=0';
 
+// Regionaler Kulturkalender ("Kultur am Regen") — direkt im Crew-Kalender
+// (/backend/kalender) eingebettet, damit Mitglieder tagesaktuell sehen, was in
+// der Region los ist, ohne die Seite zu verlassen. Bewusst client-seitig: der
+// Browser des Mitglieds lädt ihn (kein Server-Egress — unser Backend ist
+// egress-frei und käme an die Quelle eh nicht ran), und wie beim Spotify-Embed
+// erst nach Klick (DSGVO — vorher wird nichts übertragen).
+//
+// Quelle jederzeit hier umstellbar — falls die Seite Einbettung blockt
+// (X-Frame-Options / CSP frame-ancestors), greift im Kalender automatisch der
+// sichtbare „im neuen Tab öffnen"-Fallback. Alternativen für den Bayerischen Wald:
+//   'https://veranstaltungen.erlebe.bayern/regen/'   (offizielles Bayern-Portal)
+//   'https://www.regen.de/startseite/veranstaltungen' (Stadt Regen)
+//   'https://veranstaltungen.meinestadt.de/regen/alle/alle'
+export const regionalCalendar = {
+  /** Anzeigename der Quelle (steht klein unter dem Kalender). */
+  source: 'Arberkultur — Kunst & Kultur im Landkreis Regen',
+  /** Region-Label fürs Kärtchen. */
+  region: 'Bayerischen Wald & Landkreis Regen',
+  /** Seite, die nach Klick ins iframe geladen wird. */
+  embedUrl: 'https://www.arberkultur.de/erleben/kulturkalender/',
+  /** Fallback-Link (neuer Tab), falls die Seite sich nicht einbetten lässt. */
+  openUrl: 'https://www.arberkultur.de/erleben/kulturkalender/',
+};
+
 export type Member = {
   name: string;
   role: string;

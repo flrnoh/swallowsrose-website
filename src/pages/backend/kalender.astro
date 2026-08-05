@@ -5,6 +5,9 @@ export const prerender = false;
 
 import Layout from '../../layouts/Layout.astro';
 import { listCalendarEvents, getOrCreateIcalToken, EVENT_TYPES } from '../../lib/events';
+import { regionalCalendar } from '../../data/site.ts';
+
+const regionHost = new URL(regionalCalendar.embedUrl).hostname.replace(/^www\./, '');
 
 const user = Astro.locals.user!;
 const events = await listCalendarEvents();
@@ -58,6 +61,42 @@ const clientEvents = events.map((e) => ({
     <p class="mb-2 text-xs uppercase tracking-[0.3em] text-flame">Band</p>
     <h1 class="text-5xl">Kalender</h1>
     <p class="mt-3 text-sm text-cream-soft">Gigs, Proben & Termine — geteilt mit der ganzen Crew.</p>
+
+    <!--
+      Kultur in der Region — regionaler Veranstaltungskalender, direkt hier statt
+      auf einer externen Seite. Client-seitiges Embed (Browser des Mitglieds lädt
+      ihn), lädt erst nach Klick (DSGVO, wie das Spotify-Embed). Quelle in
+      src/data/site.ts → regionalCalendar. Blockt die Seite Einbettung, greift der
+      sichtbare „im neuen Tab öffnen"-Fallback.
+    -->
+    <div class="mt-8 rounded-xl border border-flame/30 bg-flame/5 p-5" data-region-wrap data-region-src={regionalCalendar.embedUrl}>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="text-2xl">Kultur in der Region</h2>
+        <span class="rounded-full border border-teal/40 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.2em] text-teal">tagesaktuell</span>
+      </div>
+      <p class="mt-2 text-sm text-cream-soft">
+        Was ist rund um den {regionalCalendar.region} los? Der Veranstaltungskalender von
+        {regionalCalendar.source} — direkt hier, immer aktuell, ohne Wechsel auf eine externe Seite.
+      </p>
+
+      <button type="button" data-load-region
+        class="group mt-4 flex min-h-[140px] w-full flex-col justify-between gap-4 rounded-lg border border-cream/15 bg-ink p-5 text-left transition-colors hover:border-flame focus-visible:outline focus-visible:outline-2 focus-visible:outline-flame">
+        <span class="font-display text-xl uppercase tracking-wide transition-colors group-hover:text-flame">
+          Kalender laden
+          <span aria-hidden="true" class="ml-1 inline-block transition-transform group-hover:translate-x-1">→</span>
+        </span>
+        <span class="max-w-2xl text-sm text-cream/55">
+          Beim Laden verbindet sich dein Browser mit {regionHost} und zeigt den Kalender hier
+          eingebettet. Erst nach diesem Klick — vorher wird nichts übertragen.
+        </span>
+      </button>
+
+      <p class="mt-3 text-[11px] text-cream/30">
+        Quelle: {regionalCalendar.source} ·
+        <a href={regionalCalendar.openUrl} target="_blank" rel="noopener"
+          class="underline decoration-cream/20 underline-offset-2 transition-colors hover:text-flame">im neuen Tab öffnen ↗</a>
+      </p>
+    </div>
 
     <!-- iCal abonnieren -->
     <div class="mt-8 rounded-xl border border-teal/30 bg-teal/5 p-5">
@@ -280,6 +319,37 @@ const clientEvents = events.map((e) => ({
       if (ok) li.remove();
       else alert(data.error ?? 'Löschen fehlgeschlagen.');
     });
+  });
+
+  // Kultur in der Region — click-to-load Embed (DSGVO), mit sichtbarem Fallback,
+  // falls die Quelle Einbettung blockt (X-Frame-Options / CSP).
+  document.querySelector('[data-load-region]')?.addEventListener('click', (e) => {
+    const btn = e.currentTarget as HTMLElement;
+    const wrap = btn.closest('[data-region-wrap]');
+    const src = wrap?.getAttribute('data-region-src');
+    if (!wrap || !src) return;
+
+    const box = document.createElement('div');
+    box.className = 'mt-4';
+
+    const iframe = document.createElement('iframe');
+    iframe.src = src;
+    iframe.loading = 'lazy';
+    iframe.referrerPolicy = 'no-referrer';
+    iframe.className = 'block w-full rounded-lg border border-cream/15 bg-cream';
+    iframe.style.height = '72vh';
+    iframe.style.border = '0';
+    iframe.title = 'Regionaler Kulturkalender';
+
+    const hint = document.createElement('p');
+    hint.className = 'mt-2 text-[11px] text-cream/40';
+    hint.innerHTML =
+      'Zeigt sich hier nichts? Manche Seiten erlauben keine Einbettung — dann ' +
+      '<a href="' + src + '" target="_blank" rel="noopener" ' +
+      'class="underline underline-offset-2 hover:text-flame">hier direkt öffnen ↗</a>.';
+
+    box.append(iframe, hint);
+    btn.replaceWith(box);
   });
 
   // Feed-URL kopieren
