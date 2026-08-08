@@ -40,18 +40,18 @@ export const spotifyEmbedSrc =
 // Quelle jederzeit hier umstellbar — falls die Seite Einbettung blockt
 // (X-Frame-Options / CSP frame-ancestors), greift im Kalender automatisch der
 // sichtbare „im neuen Tab öffnen"-Fallback. Alternativen für den Bayerischen Wald:
-//   'https://veranstaltungen.erlebe.bayern/regen/'   (offizielles Bayern-Portal)
-//   'https://www.regen.de/startseite/veranstaltungen' (Stadt Regen)
-//   'https://veranstaltungen.meinestadt.de/regen/alle/alle'
+//   'https://www.arberkultur.de/erleben/kulturkalender/'  (Landkreis Regen)
+//   'https://veranstaltungen.erlebe.bayern/viechtach/'    (offizielles Bayern-Portal)
+//   'https://veranstaltungen.meinestadt.de/viechtach/alle/alle'
 export const regionalCalendar = {
   /** Anzeigename der Quelle (steht klein unter dem Kalender). */
-  source: 'Arberkultur — Kunst & Kultur im Landkreis Regen',
+  source: 'Stadt Viechtach',
   /** Region-Label fürs Kärtchen. */
-  region: 'Bayerischen Wald & Landkreis Regen',
+  region: 'Viechtach & den Bayerischen Wald',
   /** Seite, die nach Klick ins iframe geladen wird. */
-  embedUrl: 'https://www.arberkultur.de/erleben/kulturkalender/',
+  embedUrl: 'https://www.viechtach.de/VITSeiten_Veranstaltungskalender.aspx',
   /** Fallback-Link (neuer Tab), falls die Seite sich nicht einbetten lässt. */
-  openUrl: 'https://www.arberkultur.de/erleben/kulturkalender/',
+  openUrl: 'https://www.viechtach.de/Erleben-Veranstaltungen',
 };
 
 export type Member = {
