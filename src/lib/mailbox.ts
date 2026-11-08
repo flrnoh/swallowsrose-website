@@ -190,6 +190,19 @@ export function replyTarget(thread: MailThread) {
   return [...thread.messages].reverse().find((m) => !m.own) ?? thread.messages[thread.messages.length - 1];
 }
 
+function htmlToText(html: string) {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<br\s*\/?>|<\/p>|<\/div>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;/g, "'")
+    .replace(/&amp;/g, '&');
+}
+
 /** The newest message's text as a quoted block below the reply. */
 export function quoteMessage(message: MailMessage) {
   const when = new Intl.DateTimeFormat('de-DE', {
@@ -197,7 +210,7 @@ export function quoteMessage(message: MailMessage) {
     timeStyle: 'short',
     timeZone: 'Europe/Berlin',
   }).format(new Date(message.date));
-  const body = message.text || message.html.replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ');
+  const body = message.text || htmlToText(message.html);
   const quoted = body.trim().split('\n').map((line) => `> ${line}`).join('\n');
   return `Am ${when} schrieb ${displayName(message.from)}:\n${quoted}`;
 }
