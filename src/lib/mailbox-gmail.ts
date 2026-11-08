@@ -28,18 +28,19 @@ const MAILBOX_USER = process.env.GMAIL_MAILBOX_USER ?? 'info@swallowsrose.com';
 
 export const gmailConfigured = !!(SERVICE_ACCOUNT && WORKLOAD_PROVIDER);
 
-// Folders come from Gmail labels. Gmail's search finds nothing for the booking@
-// alias over the API, so booking mail is picked by its headers instead. That
-// keeps Google invoices and info@ mail out of the crew's view.
+// Folders come from Gmail labels; booking mail is picked by its headers. The
+// band writes from both info@ and booking@, so both count. Automated mail from
+// Google and Canva (invoices, sign-in alerts) stays out of the crew's view.
 const VIEW_LABELS: Partial<Record<MailView, string>> = { inbox: 'INBOX', sent: 'SENT', spam: 'SPAM' };
 const DONE_QUERY = '-in:inbox -in:spam -in:trash -in:sent';
 
 const SCOPE_HEADERS = ['To', 'Cc', 'From', 'Delivered-To', 'X-Forwarded-To'];
 const SUMMARY_HEADERS = ['Subject', 'Date', ...SCOPE_HEADERS];
 const BOOKING_PATTERN = new RegExp(
-  `${BOOKING_ADDRESS.replace('.', '\\.')}|${WEBDE_ADDRESS.replace('.', '\\.')}`,
+  [BOOKING_ADDRESS, WEBDE_ADDRESS, MAILBOX_USER].map((address) => address.replace(/\./g, '\\.')).join('|'),
   'i',
 );
+const AUTOMATED_SENDER = /@([\w-]+\.)*(google\.com|canva\.com)>?\s*$/i;
 
 type GmailHeader = { name: string; value: string };
 type GmailPart = {
@@ -138,7 +139,8 @@ function isBookingMessage(message: GmailMessage) {
 }
 
 function isBookingThread(thread: GmailThread) {
-  return (thread.messages ?? []).some(isBookingMessage);
+  const messages = thread.messages ?? [];
+  return messages.some(isBookingMessage) && !messages.every((m) => AUTOMATED_SENDER.test(headerOf(m.payload, 'From')));
 }
 
 function hasLabel(thread: GmailThread, label: string) {
@@ -227,7 +229,6 @@ export const gmailTransport: MailTransport = {
       (list?.threads ?? []).map((t) => api<GmailThread>(`/threads/${t.id}?${metadataQuery(SUMMARY_HEADERS)}`)),
     );
     const booking = threads.filter((t): t is GmailThread => !!t && isBookingThread(t));
-    console.log(`[postfach] ${view}: gefunden ${list?.threads?.length ?? 0}, geladen ${threads.filter(Boolean).length}, Booking ${booking.length}`);
     return {
       threads: booking
         .map(summarize)

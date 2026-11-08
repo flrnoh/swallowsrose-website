@@ -350,8 +350,8 @@ Booking-Mails lesen, beantworten und aufteilen, ohne Gmail zu öffnen. Die Mails
 liegen in Gmail (`info@`-Konto), bei uns nur die Zuständigkeit (`mail_thread`).
 **Alle außer Aushilfen** (`sub`) haben Zugriff. Kern: `src/lib/mailbox.ts`,
 Gmail-Anbindung `src/lib/mailbox-gmail.ts`, APIs `/api/mailbox/{action,send,attachment}`.
-- **Sichtbar** ist nur Booking-Post (an/von `booking@` oder an `swallowsrose@web.de`).
-  Google-Rechnungen im selben Konto bleiben draußen, auch per direkter ID.
+- **Sichtbar** ist Bandpost an/von `info@`, `booking@` oder an `swallowsrose@web.de`.
+  Automatische Mails von Google und Canva bleiben draußen, auch per direkter ID.
 - **Ordner:** Offen = Gmail-Posteingang, Erledigt = archiviert, dazu Gesendet und Spam.
 - **Antworten** gehen als `booking@` raus, im selben Gmail-Thread, mit Zitat.
   Wer antwortet, wird als zuständig eingetragen, falls noch niemand gewählt ist.
