@@ -190,7 +190,7 @@ in der DB). Lokal ohne `CREW_MEMBERS` greift ein harmloser Dev-Fallback.
 **Prod-Env (Vercel):** `DATABASE_URL` (Neon-Integration), `BETTER_AUTH_SECRET`,
 `BETTER_AUTH_URL=https://swallowsrose.com`, `BREVO_SMTP_HOST/USER/PASS`,
 `MAIL_FROM` (in Brevo verifizierter Absender), `CREW_MEMBERS`, `CREW_CONTACTS`,
-`INVOICE_SETTINGS` (Rechnungs-Absenderdaten), `GMAIL_SERVICE_ACCOUNT_JSON` (Postfach). Vorlage: `.env.example`.
+`INVOICE_SETTINGS` (Rechnungs-Absenderdaten), `GMAIL_SERVICE_ACCOUNT` + `GMAIL_WORKLOAD_PROVIDER` (Postfach). Vorlage: `.env.example`.
 
 **Schema ändern:** `src/lib/db/schema.ts` → `npm run db:generate`
 (neue SQL-Migration) → `npm run db:setup`.
@@ -358,8 +358,11 @@ Gmail-Anbindung `src/lib/mailbox-gmail.ts`, APIs `/api/mailbox/{action,send,atta
 - **Fremdes HTML** läuft nur in `<iframe sandbox>` ohne Scripts; Anhänge werden nur
   heruntergeladen, nie auf unserer Domain angezeigt.
 - **Anhänge** beim Senden höchstens 4 MB zusammen (Vercel-Limit für Requests).
-- **Env:** `GMAIL_SERVICE_ACCOUNT_JSON` (Dienstkonto mit domainweiter Delegation,
-  Scope `gmail.modify`), optional `GMAIL_MAILBOX_USER`. Ohne Schlüssel: lokal
+- **Anmeldung ohne Schlüssel:** Vercel-OIDC-Token → Workload Identity Federation im
+  Google-Projekt `swallows-rose-postfach` → Dienstkonto `postfach-backend` mit
+  domainweiter Delegation (`gmail.modify`). Dienstkonto-Schlüssel sind per Richtlinie gesperrt.
+- **Env (nur Production):** `GMAIL_SERVICE_ACCOUNT`, `GMAIL_WORKLOAD_PROVIDER`,
+  optional `GMAIL_MAILBOX_USER`. Ohne die Werte: lokal
   Demo-Mails aus `src/lib/mailbox-demo.ts`, in Prod ein Hinweis „nicht eingerichtet".
 
 ### Tourplaner (`/backend/tourplaner` + `/backend/tourplaner/generator`)

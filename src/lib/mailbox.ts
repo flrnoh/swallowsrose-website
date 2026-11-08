@@ -2,7 +2,7 @@
 // in Gmail (booking@ is an alias on the info@ Workspace account); we only store
 // who in the crew handles a thread.
 //
-// Local / unconfigured (no GMAIL_SERVICE_ACCOUNT_JSON): dev runs on sample
+// Local / unconfigured (no GMAIL_SERVICE_ACCOUNT): dev runs on sample
 // threads held in memory, prod shows a "not set up yet" notice.
 import { eq, inArray, ne } from 'drizzle-orm';
 import { auth } from './auth';

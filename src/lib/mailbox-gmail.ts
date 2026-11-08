@@ -1,7 +1,8 @@
 // Gmail REST transport for the booking inbox. A service account with
 // domain-wide delegation acts as the Workspace mailbox, so there is no OAuth
-// consent flow and no extra Workspace licence. Scope: gmail.modify.
-import { createSign } from 'node:crypto';
+// consent flow and no extra Workspace licence. Scope: gmail.modify. It signs in
+// through Workload Identity Federation: no key exists anywhere.
+import { getVercelOidcToken } from '@vercel/oidc';
 import MailComposer from 'nodemailer/lib/mail-composer';
 import type {
   MailAttachment,
@@ -16,13 +17,16 @@ import { BOOKING_ADDRESS, BOOKING_FROM, WEBDE_ADDRESS, displayName, isOwnAddress
 
 const API = 'https://gmail.googleapis.com/gmail/v1/users/me';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
+const STS_URL = 'https://sts.googleapis.com/v1/token';
+const IAM_URL = 'https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts';
 const SCOPE = 'https://www.googleapis.com/auth/gmail.modify';
 const PAGE_SIZE = 20;
 
-const CREDENTIALS = process.env.GMAIL_SERVICE_ACCOUNT_JSON;
+const SERVICE_ACCOUNT = process.env.GMAIL_SERVICE_ACCOUNT;
+const WORKLOAD_PROVIDER = process.env.GMAIL_WORKLOAD_PROVIDER;
 const MAILBOX_USER = process.env.GMAIL_MAILBOX_USER ?? 'info@swallowsrose.com';
 
-export const gmailConfigured = !!CREDENTIALS;
+export const gmailConfigured = !!(SERVICE_ACCOUNT && WORKLOAD_PROVIDER);
 
 // Everything that counts as booking mail. The Workspace account also receives
 // Google invoices and info@ mail, which must stay out of the crew's view.
@@ -69,31 +73,55 @@ type GmailThread = { id: string; snippet?: string; messages?: GmailMessage[] };
 
 let cachedToken: { value: string; expiresAt: number } | undefined;
 
+async function postJson<T>(url: string, body: object, bearer?: string): Promise<T> {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}) },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`Gmail-Anmeldung fehlgeschlagen: ${url} (${res.status}) ${await res.text()}`);
+  return (await res.json()) as T;
+}
+
+// Keyless chain: Vercel's OIDC token → Google federated token → the service
+// account signs a delegated JWT for the mailbox → Gmail access token.
 async function accessToken() {
   if (cachedToken && cachedToken.expiresAt > Date.now() + 60_000) return cachedToken.value;
 
-  const key = JSON.parse(CREDENTIALS ?? '{}') as { client_email: string; private_key: string };
+  const federated = await postJson<{ access_token: string }>(STS_URL, {
+    audience: `//iam.googleapis.com/${WORKLOAD_PROVIDER}`,
+    grantType: 'urn:ietf:params:oauth:grant-type:token-exchange',
+    requestedTokenType: 'urn:ietf:params:oauth:token-type:access_token',
+    scope: 'https://www.googleapis.com/auth/cloud-platform',
+    subjectTokenType: 'urn:ietf:params:oauth:token-type:jwt',
+    subjectToken: await getVercelOidcToken(),
+  });
+
   const now = Math.floor(Date.now() / 1000);
-  const encode = (value: object) => Buffer.from(JSON.stringify(value)).toString('base64url');
-  const unsigned = `${encode({ alg: 'RS256', typ: 'JWT' })}.${encode({
-    iss: key.client_email,
-    sub: MAILBOX_USER,
-    scope: SCOPE,
-    aud: TOKEN_URL,
-    iat: now,
-    exp: now + 3600,
-  })}`;
-  const signature = createSign('RSA-SHA256').update(unsigned).sign(key.private_key, 'base64url');
+  const { signedJwt } = await postJson<{ signedJwt: string }>(
+    `${IAM_URL}/${SERVICE_ACCOUNT}:signJwt`,
+    {
+      payload: JSON.stringify({
+        iss: SERVICE_ACCOUNT,
+        sub: MAILBOX_USER,
+        scope: SCOPE,
+        aud: TOKEN_URL,
+        iat: now,
+        exp: now + 3600,
+      }),
+    },
+    federated.access_token,
+  );
 
   const res = await fetch(TOKEN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: `${unsigned}.${signature}`,
+      assertion: signedJwt,
     }),
   });
-  if (!res.ok) throw new Error(`Gmail-Anmeldung fehlgeschlagen (${res.status})`);
+  if (!res.ok) throw new Error(`Gmail-Anmeldung fehlgeschlagen (${res.status}) ${await res.text()}`);
   const data = (await res.json()) as { access_token: string; expires_in: number };
   cachedToken = { value: data.access_token, expiresAt: Date.now() + data.expires_in * 1000 };
   return cachedToken.value;
