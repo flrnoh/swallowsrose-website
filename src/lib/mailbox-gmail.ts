@@ -40,9 +40,9 @@ const BOOKING_SCOPE = [
 ].join(' OR ');
 
 const VIEW_QUERY: Record<MailView, string> = {
-  inbox: `in:inbox (${BOOKING_SCOPE})`,
+  inbox: `in:inbox -in:trash -in:spam (${BOOKING_SCOPE})`,
   done: `-in:inbox -in:spam -in:trash -in:sent (${BOOKING_SCOPE})`,
-  sent: `in:sent from:${BOOKING_ADDRESS}`,
+  sent: `in:sent -in:trash from:${BOOKING_ADDRESS}`,
   spam: `in:spam (${BOOKING_SCOPE})`,
 };
 
@@ -231,17 +231,19 @@ export const gmailTransport: MailTransport = {
     const params = new URLSearchParams({
       q: `${VIEW_QUERY[view]} ${term}`.trim(),
       maxResults: String(PAGE_SIZE),
+      // The view queries pick the folder themselves.
+      includeSpamTrash: 'true',
     });
-    if (view === 'spam') params.set('includeSpamTrash', 'true');
     if (pageToken) params.set('pageToken', pageToken);
 
     const list = await api<{ threads?: { id: string }[]; nextPageToken?: string }>(`/threads?${params}`);
     const threads = await Promise.all(
       (list?.threads ?? []).map((t) => api<GmailThread>(`/threads/${t.id}?${metadataQuery(SUMMARY_HEADERS)}`)),
     );
+    const booking = threads.filter((t): t is GmailThread => !!t && isBookingThread(t));
+    console.log(`[postfach] ${view}: gefunden ${list?.threads?.length ?? 0}, geladen ${threads.filter(Boolean).length}, Booking ${booking.length}`);
     return {
-      threads: threads
-        .filter((t): t is GmailThread => !!t && isBookingThread(t))
+      threads: booking
         .map(summarize)
         .sort((a, b) => b.date - a.date),
       nextPageToken: list?.nextPageToken ?? null,
