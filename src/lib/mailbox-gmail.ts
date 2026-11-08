@@ -28,23 +28,11 @@ const MAILBOX_USER = process.env.GMAIL_MAILBOX_USER ?? 'info@swallowsrose.com';
 
 export const gmailConfigured = !!(SERVICE_ACCOUNT && WORKLOAD_PROVIDER);
 
-// Everything that counts as booking mail. The Workspace account also receives
-// Google invoices and info@ mail, which must stay out of the crew's view.
-const BOOKING_SCOPE = [
-  `to:${BOOKING_ADDRESS}`,
-  `cc:${BOOKING_ADDRESS}`,
-  `deliveredto:${BOOKING_ADDRESS}`,
-  `to:${WEBDE_ADDRESS}`,
-  `cc:${WEBDE_ADDRESS}`,
-  `from:${BOOKING_ADDRESS}`,
-].join(' OR ');
-
-const VIEW_QUERY: Record<MailView, string> = {
-  inbox: `in:inbox -in:trash -in:spam (${BOOKING_SCOPE})`,
-  done: `-in:inbox -in:spam -in:trash -in:sent (${BOOKING_SCOPE})`,
-  sent: `in:sent -in:trash from:${BOOKING_ADDRESS}`,
-  spam: `in:spam (${BOOKING_SCOPE})`,
-};
+// Folders come from Gmail labels. Gmail's search finds nothing for the booking@
+// alias over the API, so booking mail is picked by its headers instead. That
+// keeps Google invoices and info@ mail out of the crew's view.
+const VIEW_LABELS: Partial<Record<MailView, string>> = { inbox: 'INBOX', sent: 'SENT', spam: 'SPAM' };
+const DONE_QUERY = '-in:inbox -in:spam -in:trash -in:sent';
 
 const SCOPE_HEADERS = ['To', 'Cc', 'From', 'Delivered-To', 'X-Forwarded-To'];
 const SUMMARY_HEADERS = ['Subject', 'Date', ...SCOPE_HEADERS];
@@ -226,14 +214,12 @@ async function loadScoped(id: string, query: string) {
 
 export const gmailTransport: MailTransport = {
   async listThreads(view, search, pageToken) {
-    // Brackets are stripped so a search term cannot close the booking scope.
-    const term = search.replace(/[(){}]/g, ' ').trim();
-    const params = new URLSearchParams({
-      q: `${VIEW_QUERY[view]} ${term}`.trim(),
-      maxResults: String(PAGE_SIZE),
-      // The view queries pick the folder themselves.
-      includeSpamTrash: 'true',
-    });
+    const term = search.trim();
+    const params = new URLSearchParams({ maxResults: String(PAGE_SIZE), includeSpamTrash: 'true' });
+    const label = VIEW_LABELS[view];
+    if (label) params.set('labelIds', label);
+    const query = `${label ? '' : DONE_QUERY} ${term}`.trim();
+    if (query) params.set('q', query);
     if (pageToken) params.set('pageToken', pageToken);
 
     const list = await api<{ threads?: { id: string }[]; nextPageToken?: string }>(`/threads?${params}`);
