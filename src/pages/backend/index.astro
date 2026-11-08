@@ -4,6 +4,7 @@
 // setlists, finances …) hang off this shell.
 export const prerender = false;
 
+import { canUseMailbox } from '../../lib/mailbox';
 import Layout from '../../layouts/Layout.astro';
 
 const user = Astro.locals.user!;
@@ -107,6 +108,19 @@ const modules: { title: string; desc: string }[] = [];
       </div>
       <p class="mt-2 text-sm text-cream-soft">Ampel pro Termin: sag ob du kannst, sieh wer dabei ist</p>
     </a>
+
+    {canUseMailbox(Astro.locals.user) && (
+      <a
+        href="/backend/postfach"
+        class="mt-4 block rounded-xl border border-flame/40 bg-flame/10 p-5 transition-colors hover:border-flame"
+      >
+        <div class="flex items-center justify-between">
+          <h2 class="text-2xl">Postfach</h2>
+          <span class="text-xl text-flame">→</span>
+        </div>
+        <p class="mt-2 text-sm text-cream-soft">Booking-Mails lesen, beantworten und aufteilen</p>
+      </a>
+    )}
 
     <a
       href="/backend/kontakte"

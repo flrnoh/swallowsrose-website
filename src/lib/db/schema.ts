@@ -267,6 +267,14 @@ export const invoiceItem = pgTable('invoice_item', {
   unitPriceCents: integer('unit_price_cents').notNull(),
 });
 
+// Who in the crew is handling a booking-mail thread. The mail itself lives in
+// Gmail (see src/lib/mailbox.ts); only this assignment is ours.
+export const mailThread = pgTable('mail_thread', {
+  threadId: text('thread_id').primaryKey(),
+  assigneeId: text('assignee_id').references(() => user.id, { onDelete: 'set null' }),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
 export const schema = {
   user,
   session,
@@ -282,4 +290,5 @@ export const schema = {
   contact,
   invoice,
   invoiceItem,
+  mailThread,
 };

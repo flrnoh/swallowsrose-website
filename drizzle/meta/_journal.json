@@ -71,6 +71,13 @@
       "when": 1784812779856,
       "tag": "0009_invoices",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794142611929,
+      "tag": "0010_mailbox",
+      "breakpoints": true
     }
   ]
 }

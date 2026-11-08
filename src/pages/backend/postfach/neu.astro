@@ -1,0 +1,21 @@
+---
+// New outgoing mail from booking@.
+export const prerender = false;
+
+import Layout from '../../../layouts/Layout.astro';
+import MailCompose from '../../../components/MailCompose.astro';
+import { canUseMailbox, mailboxReady } from '../../../lib/mailbox';
+
+if (!canUseMailbox(Astro.locals.user)) return Astro.redirect('/backend');
+if (!mailboxReady) return Astro.redirect('/backend/postfach');
+---
+
+<Layout title="Neue Mail — Swallow's Rose Crew" chrome={false}>
+  <section class="mx-auto min-h-[100dvh] max-w-3xl px-6 py-16">
+    <a href="/backend/postfach" class="mb-8 inline-block text-xs uppercase tracking-[0.2em] text-cream-soft transition-colors hover:text-flame">
+      ← Postfach
+    </a>
+    <h1 class="mb-8 text-5xl">Neue Mail</h1>
+    <MailCompose doneUrl="/backend/postfach?view=sent" />
+  </section>
+</Layout>

@@ -1,0 +1,122 @@
+---
+// Write form for /backend/postfach: a reply when threadId is set, else a new mail.
+import { listContacts } from '../lib/contacts';
+import { MAX_UPLOAD_BYTES } from '../lib/mailbox';
+
+interface Props {
+  threadId?: string;
+  to?: string;
+  cc?: string;
+  doneUrl: string;
+}
+
+const { threadId = '', to = '', cc = '', doneUrl } = Astro.props;
+const addresses = [...new Set((await listContacts()).map((c) => c.email).filter(Boolean))] as string[];
+
+const fieldClass =
+  'mt-1 w-full rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none placeholder:text-cream/30 focus:border-flame';
+const labelClass = 'block text-xs uppercase tracking-[0.15em] text-cream-soft';
+---
+
+<form id="mail-compose" class="space-y-4" data-done={doneUrl} data-max={MAX_UPLOAD_BYTES} novalidate>
+  <input type="hidden" name="threadId" value={threadId} />
+
+  <p class="text-sm text-cream-soft">Von: booking@swallowsrose.com</p>
+
+  <div>
+    <label for="mail-to" class={labelClass}>An</label>
+    <input id="mail-to" name="to" type="text" value={to} list="mail-addresses" autocomplete="off" required class={fieldClass} />
+  </div>
+
+  <div>
+    <label for="mail-cc" class={labelClass}>Kopie (optional)</label>
+    <input id="mail-cc" name="cc" type="text" value={cc} list="mail-addresses" autocomplete="off" class={fieldClass} />
+  </div>
+
+  <datalist id="mail-addresses">
+    {addresses.map((address) => <option value={address} />)}
+  </datalist>
+
+  {!threadId && (
+    <div>
+      <label for="mail-subject" class={labelClass}>Betreff</label>
+      <input id="mail-subject" name="subject" type="text" required class={fieldClass} />
+    </div>
+  )}
+
+  <div>
+    <label for="mail-text" class={labelClass}>Nachricht</label>
+    <textarea id="mail-text" name="text" rows="9" required class={fieldClass}></textarea>
+    {threadId && <p class="mt-1 text-xs text-cream-soft">Die Mail, auf die du antwortest, wird automatisch unten angehängt.</p>}
+  </div>
+
+  <div>
+    <label for="mail-files" class={labelClass}>Anhänge (zusammen höchstens 4 MB)</label>
+    <input
+      id="mail-files"
+      name="files"
+      type="file"
+      multiple
+      class="mt-1 block w-full text-sm text-cream-soft file:mr-3 file:rounded-lg file:border file:border-cream/20 file:bg-transparent file:px-4 file:py-2.5 file:text-cream"
+    />
+  </div>
+
+  <p id="mail-msg" role="status" aria-live="polite" class="text-sm text-flame" hidden></p>
+
+  <button
+    id="mail-submit"
+    type="submit"
+    class="rounded-lg bg-flame px-5 py-3 font-display text-lg uppercase tracking-wide text-ink transition-colors hover:bg-flame-soft disabled:opacity-50"
+  >
+    Senden
+  </button>
+</form>
+
+<script>
+  const form = document.getElementById('mail-compose') as HTMLFormElement;
+  const msg = document.getElementById('mail-msg') as HTMLElement;
+  const submit = document.getElementById('mail-submit') as HTMLButtonElement;
+  const text = document.getElementById('mail-text') as HTMLTextAreaElement;
+  const files = document.getElementById('mail-files') as HTMLInputElement;
+  let finished = false;
+
+  const show = (message: string) => {
+    msg.textContent = message;
+    msg.hidden = false;
+  };
+
+  // Guards a half-written mail against an accidental reload or back swipe.
+  window.addEventListener('beforeunload', (event) => {
+    if (!finished && text.value.trim()) event.preventDefault();
+  });
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const total = [...(files.files ?? [])].reduce((sum, file) => sum + file.size, 0);
+    if (total > Number(form.dataset.max)) {
+      show('Anhänge dürfen zusammen höchstens 4 MB groß sein.');
+      return;
+    }
+
+    submit.disabled = true;
+    submit.textContent = 'Wird gesendet …';
+    msg.hidden = true;
+    try {
+      const res = await fetch('/api/mailbox/send', { method: 'POST', body: new FormData(form) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        show(data.error ?? 'Senden hat nicht geklappt.');
+        return;
+      }
+      finished = true;
+      window.location.href = form.dataset.done ?? '/backend/postfach';
+    } catch {
+      show('Keine Verbindung. Die Nachricht wurde nicht verschickt.');
+    } finally {
+      if (!finished) {
+        submit.disabled = false;
+        submit.textContent = 'Senden';
+      }
+    }
+  });
+</script>
