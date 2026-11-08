@@ -133,8 +133,9 @@ generieren, falls aus einer Gruppenaufnahme.
 - Vercel-Projekt: `flrnohs-projects/swallowsrose-website`
 - Production-Domain: `swallowsrose.com` (Apex), `www.swallowsrose.com` (308 → Apex)
 - DNS bei Vercel (Vercel ist Registrar seit Juni 2026)
-- Mail-Forwarding: ImprovMX (kostenlos, Aliase → `swallowsrose@web.de`)
-- SPF erlaubt sowohl ImprovMX als auch web.de als Sender
+- Mail: Google Workspace (MX `smtp.google.com`). `booking@` ist Alias auf `info@`;
+  `swallowsrose@web.de` leitet nach `booking@` weiter
+- SPF erlaubt Google und web.de als Sender, DKIM läuft über `google._domainkey`
 
 ## Wenn was Größeres ansteht
 
@@ -189,7 +190,7 @@ in der DB). Lokal ohne `CREW_MEMBERS` greift ein harmloser Dev-Fallback.
 **Prod-Env (Vercel):** `DATABASE_URL` (Neon-Integration), `BETTER_AUTH_SECRET`,
 `BETTER_AUTH_URL=https://swallowsrose.com`, `BREVO_SMTP_HOST/USER/PASS`,
 `MAIL_FROM` (in Brevo verifizierter Absender), `CREW_MEMBERS`, `CREW_CONTACTS`,
-`INVOICE_SETTINGS` (Rechnungs-Absenderdaten). Vorlage: `.env.example`.
+`INVOICE_SETTINGS` (Rechnungs-Absenderdaten), `GMAIL_SERVICE_ACCOUNT_JSON` (Postfach). Vorlage: `.env.example`.
 
 **Schema ändern:** `src/lib/db/schema.ts` → `npm run db:generate`
 (neue SQL-Migration) → `npm run db:setup`.
@@ -342,6 +343,24 @@ sonst 403).
   Repo** (public!), nur in der Env-Var. Rein intern (invite-only, kein Versand an
   Externe, **nichts leakt auf die Website**) — dieselbe Nutzung wie zuvor in der
   Google-Tabelle, kein neuer Auftragsverarbeiter.
+
+### Postfach (`/backend/postfach`)
+
+Booking-Mails lesen, beantworten und aufteilen, ohne Gmail zu öffnen. Die Mails
+liegen in Gmail (`info@`-Konto), bei uns nur die Zuständigkeit (`mail_thread`).
+**Alle außer Aushilfen** (`sub`) haben Zugriff. Kern: `src/lib/mailbox.ts`,
+Gmail-Anbindung `src/lib/mailbox-gmail.ts`, APIs `/api/mailbox/{action,send,attachment}`.
+- **Sichtbar** ist nur Booking-Post (an/von `booking@` oder an `swallowsrose@web.de`).
+  Google-Rechnungen im selben Konto bleiben draußen, auch per direkter ID.
+- **Ordner:** Offen = Gmail-Posteingang, Erledigt = archiviert, dazu Gesendet und Spam.
+- **Antworten** gehen als `booking@` raus, im selben Gmail-Thread, mit Zitat.
+  Wer antwortet, wird als zuständig eingetragen, falls noch niemand gewählt ist.
+- **Fremdes HTML** läuft nur in `<iframe sandbox>` ohne Scripts; Anhänge werden nur
+  heruntergeladen, nie auf unserer Domain angezeigt.
+- **Anhänge** beim Senden höchstens 4 MB zusammen (Vercel-Limit für Requests).
+- **Env:** `GMAIL_SERVICE_ACCOUNT_JSON` (Dienstkonto mit domainweiter Delegation,
+  Scope `gmail.modify`), optional `GMAIL_MAILBOX_USER`. Ohne Schlüssel: lokal
+  Demo-Mails aus `src/lib/mailbox-demo.ts`, in Prod ein Hinweis „nicht eingerichtet".
 
 ### Tourplaner (`/backend/tourplaner` + `/backend/tourplaner/generator`)
 

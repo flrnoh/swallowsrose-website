@@ -1,0 +1,186 @@
+---
+// One conversation: read, reply, hand over, file away.
+export const prerender = false;
+
+import Layout from '../../../layouts/Layout.astro';
+import MailCompose from '../../../components/MailCompose.astro';
+import {
+  canUseMailbox,
+  displayName,
+  getAssigneeId,
+  getThread,
+  listAssignees,
+  mailDocument,
+  mailboxReady,
+  modifyThread,
+  replyRecipients,
+  replyTarget,
+} from '../../../lib/mailbox';
+
+if (!canUseMailbox(Astro.locals.user)) return Astro.redirect('/backend');
+if (!mailboxReady) return Astro.redirect('/backend/postfach');
+
+const id = Astro.params.id ?? '';
+const thread = await getThread(id);
+if (!thread) return Astro.redirect('/backend/postfach');
+
+// Opening a conversation counts as reading it.
+if (thread.unread) await modifyThread(thread.id, [], ['UNREAD']);
+
+const [assignees, assigneeId] = await Promise.all([listAssignees(), getAssigneeId(thread.id)]);
+const recipients = replyRecipients(replyTarget(thread));
+const backView = thread.inSpam ? 'spam' : thread.inInbox ? 'inbox' : 'done';
+const backUrl = `/backend/postfach?view=${backView}`;
+
+const fmtDate = (ms: number) =>
+  new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Berlin' }).format(new Date(ms));
+const fmtSize = (bytes: number) =>
+  bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+const attachmentUrl = (messageId: string, attachmentId: string, name: string) =>
+  `/api/mailbox/attachment?${new URLSearchParams({ m: messageId, a: attachmentId, name })}`;
+
+const actionClass =
+  'rounded-lg border border-cream/20 px-4 py-2.5 text-sm text-cream transition-colors hover:border-flame disabled:opacity-50';
+---
+
+<Layout title={`${thread.subject} — Postfach`} chrome={false}>
+  <section class="mx-auto min-h-[100dvh] max-w-3xl px-6 py-16" id="mail-thread" data-thread={thread.id} data-back={backUrl}>
+    <a href={backUrl} class="mb-8 inline-block text-xs uppercase tracking-[0.2em] text-cream-soft transition-colors hover:text-flame">
+      ← Postfach
+    </a>
+
+    <h1 class="text-3xl break-words md:text-4xl">{thread.subject}</h1>
+
+    <div class="mt-6 flex flex-wrap items-center gap-2">
+      {thread.inSpam ? (
+        <button type="button" data-action="notspam" class={actionClass}>Kein Spam</button>
+      ) : (
+        <>
+          {thread.inInbox ? (
+            <button type="button" data-action="done" class={actionClass}>Erledigt</button>
+          ) : (
+            <button type="button" data-action="reopen" class={actionClass}>Wieder öffnen</button>
+          )}
+          <button type="button" data-action="unread" class={actionClass}>Als ungelesen</button>
+          <button type="button" data-action="spam" class={actionClass}>Spam</button>
+        </>
+      )}
+    </div>
+
+    <div class="mt-4">
+      <label for="mail-assignee" class="block text-xs uppercase tracking-[0.15em] text-cream-soft">Wer kümmert sich?</label>
+      <select id="mail-assignee" class="mt-1 w-full rounded-lg border border-cream/15 bg-ink px-4 py-3 text-cream outline-none focus:border-flame sm:w-64">
+        <option value="" selected={!assigneeId}>Noch niemand</option>
+        {assignees.map((a) => <option value={a.id} selected={a.id === assigneeId}>{a.name}</option>)}
+      </select>
+    </div>
+
+    <p id="mail-action-msg" role="status" aria-live="polite" class="mt-3 text-sm text-flame" hidden></p>
+
+    <div class="mt-8 space-y-4">
+      {thread.messages.map((message) => (
+        <article class:list={['rounded-xl border p-4', message.own ? 'border-teal/40' : 'border-cream/15']}>
+          <header class="text-sm">
+            <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+              <p class="min-w-0 break-words font-semibold text-cream">{displayName(message.from)}</p>
+              <time class="text-xs text-cream-soft" datetime={new Date(message.date).toISOString()}>{fmtDate(message.date)}</time>
+            </div>
+            <p class="mt-1 break-words text-xs text-cream-soft">An: {message.to}</p>
+            {message.cc && <p class="break-words text-xs text-cream-soft">Kopie: {message.cc}</p>}
+          </header>
+
+          {message.html ? (
+            <iframe
+              class="mail-frame mt-3 h-64 w-full rounded-lg bg-white"
+              title={`Mail von ${displayName(message.from)}`}
+              sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+              srcdoc={mailDocument(message.html)}
+            ></iframe>
+          ) : (
+            <p class="mt-3 whitespace-pre-wrap break-words text-cream">{message.text}</p>
+          )}
+
+          {message.attachments.length > 0 && (
+            <ul class="mt-3 flex flex-wrap gap-2">
+              {message.attachments.map((file) => (
+                <li>
+                  <a
+                    href={attachmentUrl(file.messageId, file.id, file.name)}
+                    download={file.name}
+                    class="inline-block rounded-lg border border-cream/20 px-3 py-2 text-sm text-teal transition-colors hover:border-flame"
+                  >
+                    {file.name} <span class="text-cream-soft">({fmtSize(file.size)})</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </article>
+      ))}
+    </div>
+
+    <h2 class="mb-4 mt-10 text-2xl">Antworten</h2>
+    <MailCompose threadId={thread.id} to={recipients.to} cc={recipients.cc} doneUrl={`/backend/postfach/${encodeURIComponent(thread.id)}`} />
+  </section>
+</Layout>
+
+<script>
+  const root = document.getElementById('mail-thread') as HTMLElement;
+  const msg = document.getElementById('mail-action-msg') as HTMLElement;
+  const assignee = document.getElementById('mail-assignee') as HTMLSelectElement;
+  const threadId = root.dataset.thread;
+
+  const show = (message: string) => {
+    msg.textContent = message;
+    msg.hidden = false;
+  };
+
+  async function post(body: Record<string, string>) {
+    try {
+      const res = await fetch('/api/mailbox/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ threadId, ...body }),
+      });
+      if (res.ok) return true;
+      const data = await res.json().catch(() => ({}));
+      show(data.error ?? 'Das hat nicht geklappt.');
+    } catch {
+      show('Keine Verbindung. Bitte nochmal versuchen.');
+    }
+    return false;
+  }
+
+  root.querySelectorAll<HTMLButtonElement>('[data-action]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      msg.hidden = true;
+      if (await post({ action: button.dataset.action ?? '' })) {
+        window.location.href = button.dataset.action === 'notspam' ? '/backend/postfach' : (root.dataset.back ?? '/backend/postfach');
+        return;
+      }
+      button.disabled = false;
+    });
+  });
+
+  let savedAssignee = assignee.value;
+  assignee.addEventListener('change', async () => {
+    msg.hidden = true;
+    if (await post({ action: 'assign', assigneeId: assignee.value })) {
+      savedAssignee = assignee.value;
+      show('Gespeichert.');
+    } else {
+      assignee.value = savedAssignee;
+    }
+  });
+
+  // Mail HTML has no scripts, so the page sizes each frame to its content.
+  document.querySelectorAll<HTMLIFrameElement>('.mail-frame').forEach((frame) => {
+    const fit = () => {
+      const height = frame.contentDocument?.body.scrollHeight;
+      if (height) frame.style.height = `${height}px`;
+    };
+    frame.addEventListener('load', fit);
+    if (frame.contentDocument?.readyState === 'complete') fit();
+  });
+</script>
