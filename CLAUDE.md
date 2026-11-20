@@ -203,6 +203,8 @@ Termine anlegen/bearbeiten/löschen. Kern: `src/lib/events.ts`, API
 - **iCal-Abo**: pro Mitglied ein geheimer Feed `/api/calendar/<token>.ics`
   (`src/lib/ical.ts`), zum Abonnieren in Apple/Google Kalender — one-way,
   aktualisiert sich automatisch (Frequenz bestimmt die Kalender-App).
+  Knopf „In Google Kalender abonnieren" (`calendar.google.com/calendar/render?cid=webcal://…`,
+  wie im GANG-Backend) — das ist unsere Google-Kalender-Integration, keine API nötig.
 - **Öffentlich**: Termine mit `isPublic` erscheinen im Website-Tourkalender
   (`/api/tour.json` → `Tour.astro` client-seitig, nur kommende **& bestätigte**).
 
@@ -280,8 +282,14 @@ buchen. Kern: `src/lib/finance.ts`, APIs `/api/finance/save` + `/api/finance/del
 - **Zahlungsart** (`method`): `sumup` (Default — die Band nutzt SumUp für
   Rechnungen & Merch), `bar`, `ueberweisung`, `sonstiges`. Die Übersicht zeigt
   „Einnahmen nach Zahlungsart" (SumUp-Abgleich).
+- **Kategorien** (`CATEGORIES`): Ausgaben u. a. „Bus & Tanken" (Wert `fahrt`),
+  „Übernachtung / Hotel" (`unterkunft`), „GEMA" (`gema`, auch als Einnahme) —
+  Werte bleiben stabil, nur Labels ändern (Altbuchungen!).
 - **Kassenstand** = Einnahmen − Ausgaben; **Gagen-Split** = Kassenstand ÷
   Mitgliederzahl (`getMemberCount()`), live auf der Seite.
+- **Auswertung**: Zeitraum (Jahr/Monat) + Kategorie filtern Summen,
+  Aufschlüsselung nach Kategorie und die Buchungsliste (rein clientseitig);
+  gefilterte Buchungen als CSV (Semikolon, Dezimalkomma → Excel/Steuer).
 - **Bulk-Import** („aus Tabelle einfügen"): Tab-getrennte Zeilen (Datum · Art ·
   Betrag · Bemerkung) einfügen → Vorschau (Kategorie wird aus „Art" erraten) →
   `/api/finance/import` (Batch, validiert atomar). So kommen echte Zahlen in die
