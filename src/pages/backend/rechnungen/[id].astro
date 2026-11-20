@@ -25,6 +25,11 @@ const totals = computeTotals(inv.items, inv.taxMode as TaxMode, inv.taxRatePerce
 const due = dueDate(inv.issueDate, inv.dueDays);
 const isKlein = inv.taxMode === 'kleinunternehmer';
 const senderOneLine = `${s.senderName} · ${s.senderLines.join(', ')}`;
+// "info@swallowsrose.com" + "swallowsrose.com" read as the same line twice → show
+// the website only when it adds something the mail address doesn't already say.
+const emailDomain = s.email.split('@')[1]?.toLowerCase() ?? '';
+const siteHost = s.website.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '').toLowerCase();
+const showWebsite = !!siteHost && siteHost !== emailDomain;
 ---
 
 <!doctype html>
@@ -70,6 +75,7 @@ const senderOneLine = `${s.senderName} · ${s.senderLines.join(', ')}`;
         letter-spacing: 0.22em; font-size: 8.5px; color: var(--coral); margin-top: 3px; }
       .meta { text-align: right; font-size: 11px; color: var(--muted); }
       .meta b { color: var(--ink); }
+      .meta .gap { margin-top: 6px; }
 
       /* Recipient */
       .addr-return { font-size: 9px; color: var(--muted); margin-bottom: 8px; }
@@ -162,9 +168,10 @@ const senderOneLine = `${s.senderName} · ${s.senderLines.join(', ')}`;
           </div>
         </div>
         <div class="meta">
-          {s.email && <div>{s.email}</div>}
+          {s.senderLines.map((l) => <div>{l}</div>)}
+          {s.email && <div class="gap">{s.email}</div>}
           {s.phone && <div>{s.phone}</div>}
-          {s.website && <div>{s.website}</div>}
+          {showWebsite && <div>{s.website}</div>}
           {s.taxNumber && s.taxNumber !== '—' && <div>Steuer-Nr.: {s.taxNumber}</div>}
           {s.vatId && <div>USt-IdNr.: {s.vatId}</div>}
         </div>
